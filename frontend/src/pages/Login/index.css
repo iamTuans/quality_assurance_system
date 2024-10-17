@@ -1,0 +1,43 @@
+.login-container {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.login-panal {
+    border: 1px solid gray;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.login-panal-title {
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.login-panal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-left: 20px;
+    margin-top: 20px;
+}
+
+.panal-form-items {
+    display: flex;
+}
+
+.form_label {
+    width: 100%;
+    margin-right: 10px;
+}
+
+.login-buton {
+    display: block;
+    padding: 5px;
+    font-weight: bold;
+}
