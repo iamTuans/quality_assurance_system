@@ -37,6 +37,10 @@ const projectSchema = new Schema({
         type: Date,
         required: false
     },
+    customer: {
+        type: String,
+        required: false
+    },
     status: {
         type: String,
         enum: ['open', 'pending', 'close'],

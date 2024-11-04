@@ -13,7 +13,7 @@ const projectRoleSchema = new Schema({
     },
     role: {
         type: String,
-        enum: ['dev', 'tester', 'ba', 'qa', 'ui-ux', 'pd'],
+        enum: ['dev', 'tester', 'ba', 'qa', 'uiux', 'pd'],
         required: true,
     }
 }, {

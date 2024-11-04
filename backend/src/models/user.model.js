@@ -14,7 +14,15 @@ const userSchema = new Schema({
         enum: [
             'admin',
             'pm',
-            'user'
+            'qa',
+            'dev',
+            'ba',
+            'uiux',
+            'tester',
+            'cm',
+            'pd',
+            'po',
+            'user' //role trong hệ thống
         ],
         default: 'user',
         required: true,
@@ -23,4 +31,4 @@ const userSchema = new Schema({
     timestamps: true // luu lai ngay gio tao data, createAt
 });
 
-module.exports = model(`user`, userSchema);
+module.exports = model(`users`, userSchema);
