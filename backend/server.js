@@ -1,4 +1,5 @@
 //Import  modules
+const cors = require('cors');
 const express = require('express');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
@@ -13,6 +14,10 @@ const routers = require('./src/routers/routers');
 dotenv.config();
 
 const app = express();
+
+app.use(cors({
+    origin: '*'
+}));
 
 const PORT = process.env.PORT || 8080;
 

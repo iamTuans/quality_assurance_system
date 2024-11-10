@@ -8,7 +8,7 @@ const {
     newMongoId
 } = require('../utils/utils');
 
-const ROLE =require('../constants/ROLE');
+const ROLE = require('../constants/ROLE');
 
 //Import Models
 const userModel = require('../models/user.model');
@@ -24,14 +24,14 @@ router.post('/add-user', verifyToken, async (req, res) => { //verify token neu d
 
     const { username, password } = req.body;
     const foundUser = await userModel
-        .findOne({username}); //check user xem username đã tồn tại hay chưa
-    if(foundUser){
+        .findOne({ username }); //check user xem username đã tồn tại hay chưa
+    if (foundUser) {
         return res.status(400).send({
             message: 'User already exists!'
         });
     }
     const hashedPassword = await bcrypt.hash(password, 10); //thuật toán hash 10 lần để mã hóa mật khẩu 10 lần
-    const newUser = new userModel({username, password: hashedPassword});
+    const newUser = new userModel({ username, password: hashedPassword });
     await newUser.save(); // async và await: đợi lệnh này hoàn thành rồi mới chạy tiếp lệnh bên dưới
 
     return res.status(200).send({
@@ -57,10 +57,10 @@ router.post('/add-role', verifyToken, async (req, res) => {
                 message: 'User not found!'
             });
         }
-    
+
         foundUser.role = role;
         await foundUser.save();
-    
+
         return res.status(200).send({
             message: 'Role added!',
             user: {
@@ -84,7 +84,7 @@ router.post('/create-project', verifyToken, async (req, res) => {
             });
         }
 
-        const { 
+        const {
             leader_username,
             project_code,
         } = req.body;
@@ -96,7 +96,7 @@ router.post('/create-project', verifyToken, async (req, res) => {
             });
         }
 
-        if(foundLeader.role != ROLE.PM) {
+        if (foundLeader.role != ROLE.PM) {
             return res.status(400).send({
                 message: 'This is not a PM!'
             });
@@ -128,6 +128,56 @@ router.post('/create-project', verifyToken, async (req, res) => {
 
     } catch (err) {
         console.log(err);
+        return res.status(500).send({
+            message: 'Internal server error!'
+        });
+    }
+});
+
+router.get('/get-projects', verifyToken, async (req, res) => {
+    try {
+        const auth = req.auth;
+        if (auth?.role != ROLE.ADMIN) { //kiemtra role 
+            return res.status(401).send({
+                message: 'Unauthorized!'
+            });
+        }
+
+        const projects = await projectModel
+            .find()
+            .populate('creator', 'username')
+            .populate('leader', 'username');
+        return res.status(200).send({
+            projects
+        });
+    } catch (err) {
+        return res.status(500).send({
+            message: 'Internal server error!'
+        });
+    }
+});
+
+router.get('/get-users', verifyToken, async (req, res) => {
+    try {
+        const auth = req.auth;
+        if (auth?.role != ROLE.ADMIN) {
+            return res.status(401).send({
+                message: 'Unauthorized!'
+            });
+        }
+
+        const role = req.query.role || null;
+
+        let users;
+        if (role === null) {
+            users = await userModel.find().select('-password');
+        } else {
+            users = await userModel.find({ role }).select('-password');
+        }
+        return res.status(200).send({
+            users
+        });
+    } catch (err) {
         return res.status(500).send({
             message: 'Internal server error!'
         });
