@@ -4,7 +4,6 @@
     height: 100vh;
     justify-content: center;
     align-items: center;
-    flex-direction: column;
 }
 
 .login-panal {
@@ -28,16 +27,33 @@
 }
 
 .panal-form-items {
-    display: flex;
+    float: left;
+    /* text-align: right; */
 }
 
 .form_label {
-    width: 100%;
+    margin: 1px 0px;
     margin-right: 10px;
+    float: left;
+    position: relative;
+    text-align: right;
+    width: 130px;
+    word-wrap: break-word;
 }
 
-.login-buton {
-    display: block;
-    padding: 5px;
-    font-weight: bold;
+.button-text {
+    font-size: inherit;
+}
+
+.login-hint {
+    margin: 1px 0px;
+    padding: 4px 0 4px 140px;
+    word-wrap: break-word;
+}
+
+.login-button {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    font-size: inherit;
 }

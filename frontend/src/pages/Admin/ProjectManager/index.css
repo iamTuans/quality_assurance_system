@@ -1,0 +1,11 @@
+.group-create-project {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.create-project {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
