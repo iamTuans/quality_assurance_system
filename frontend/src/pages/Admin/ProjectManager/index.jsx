@@ -5,6 +5,7 @@ import axios from "axios";
 import "./index.css";
 
 import { Input, Button, Table, Select, Tag } from "antd";
+import { SearchOutlined, UnorderedListOutlined, PlusCircleOutlined } from '@ant-design/icons';
 
 function ProjectManager() {
 
@@ -28,13 +29,13 @@ function ProjectManager() {
                 Authorization: localStorage.getItem("token") || "token"
             }
         })
-        .then(res => {
-            alert("Project created successfully!");
-            fetchProjects();
-        })
-        .catch(err => {
-            alert("Something went wrong!")
-        })
+            .then(res => {
+                alert("Project created successfully!");
+                fetchProjects();
+            })
+            .catch(err => {
+                alert("Something went wrong!")
+            })
     }
 
     const fetchProjects = async () => {
@@ -153,14 +154,34 @@ function ProjectManager() {
     return (
         <div>
             <div className="group-create-project">
-                <div className="create-project">
-                <Input placeholder="Project ID" size="large" onChange={(e) => setProjectCode(e.target.value)} />
-                <Select placeholder="PM" size="large" style={{ width: "200px" }} options={pms} onChange={(pm_username) => setSelectedPm(pm_username)} />
-                <Button type="primary" size="large" onClick={() => createProject()}>Create</Button>
+                <div>
+                    <SearchOutlined style={{ fontSize: '15px' }} />
+                    <label className="title">SEARCH</label>
+                </div>
+                <div className="search-project">
+                    <Input placeholder="Enter Project Code" size="large" onChange={(e) => setProjectCode(e.target.value)} />
+                    <Button type="primary" size="large">Search</Button>
                 </div>
             </div>
-            <div>
-                <Table dataSource={projects} columns={columns} />
+            <div className="group-create-project">
+                <div>
+                    <PlusCircleOutlined />
+                    <label className="title">CREATE A PROJECT</label>
+                </div>
+                <div className="create-project">
+                    <Input placeholder="Project ID" size="large" onChange={(e) => setProjectCode(e.target.value)} />
+                    <Select placeholder="Project Lead" size="large" style={{ width: "300px" }} options={pms} onChange={(pm_username) => setSelectedPm(pm_username)} />
+                    <Button type="primary" size="large" onClick={() => createProject()}>Create</Button>
+                </div>
+            </div>
+            <div className="group-create-project">
+                <div>
+                    <UnorderedListOutlined />
+                    <label className="title">PROJECT LIST</label>
+                </div>
+                <div>
+                    <Table dataSource={projects} columns={columns} />
+                </div>
             </div>
         </div>
     )
