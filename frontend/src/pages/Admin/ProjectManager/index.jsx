@@ -5,7 +5,15 @@ import axios from "axios";
 import "./index.css";
 
 import { Input, Button, Table, Select, Tag, Menu } from "antd";
-import { HomeOutlined, MailOutlined, AppstoreOutlined, SettingOutlined, SearchOutlined, UnorderedListOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import {
+    HomeOutlined,
+    CopyOutlined,
+    AppstoreOutlined,
+    SettingOutlined,
+    SearchOutlined,
+    UnorderedListOutlined,
+    PlusCircleOutlined
+} from "@ant-design/icons";
 
 function ProjectManager() {
 
@@ -15,6 +23,46 @@ function ProjectManager() {
 
     const [selectedPm, setSelectedPm] = React.useState(null);
     const [projectCode, setProjectCode] = React.useState(null);
+
+    const [projectKeyword, setProjectKeyword] = React.useState(null);
+
+    const [loading, setLoading] = React.useState(false);
+
+    const searchByKeyword = async () => {
+        setLoading(true);
+        if (!projectKeyword) {
+            fetchProjects();
+        } else {
+            await axios.post(`${configs.API_URL}/general/search-project`, {
+                keyword: projectKeyword
+            }, {
+                headers: {
+                    Authorization: localStorage.getItem("token") || "token"
+                }
+            })
+                .then(res => {
+                    const buildedProjects = res.data.projects.map(project => {
+                        return {
+                            key: project._id,
+                            code: project.code,
+                            name: project.name || "",
+                            leader: project.leader.username || "",
+                            rank: project.rank || "",
+                            category: project.category || "",
+                            start_date: project.start_date || "",
+                            end_date: project.end_date || "",
+                            customer: project.customer || "",
+                            status: project.status || "undefined"
+                        }
+                    });
+                    setProjects(buildedProjects);
+                })
+                .catch(err => {
+                    alert("Something went wrong!")
+                })
+        }
+        setLoading(false);
+    }
 
     const createProject = async () => {
         if (!selectedPm || !projectCode) {
@@ -155,7 +203,7 @@ function ProjectManager() {
         {
             key: 'sub1',
             label: 'Project Manager',
-            icon: <MailOutlined />,
+            icon: <CopyOutlined />,
             children: [
                 {
                     key: 'create-a-project',
@@ -180,8 +228,8 @@ function ProjectManager() {
             icon: <SettingOutlined />,
             children: [
                 {
-                    key: 'sign-out',
-                    label: 'Sign Out'
+                    key: 'log-out',
+                    label: 'Loh Out'
                 },
             ],
         },
@@ -213,8 +261,8 @@ function ProjectManager() {
                         <label className="title">SEARCH</label>
                     </div>
                     <div className="search-project">
-                        <Input placeholder="Enter Key Word" size="large" />
-                        <Button type="primary" size="large">Search</Button>
+                        <Input placeholder="Enter Key Word" size="large" onChange={(e) => setProjectKeyword(e.target.value)} />
+                        <Button type="primary" size="large" onClick={searchByKeyword}>Search</Button>
                     </div>
                 </div>
                 <div className="group-create-project">

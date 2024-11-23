@@ -1,21 +1,10 @@
 import React from 'react';
 import './index.css';
-// import { useNavigate } from 'react-router-dom';
 
 import { Menu, Table } from 'antd';
-import { HomeOutlined, AppstoreOutlined, MailOutlined, SettingOutlined, UnorderedListOutlined } from '@ant-design/icons';
+import { HomeOutlined, KeyOutlined, FormOutlined, MailOutlined, SettingOutlined, UnorderedListOutlined } from '@ant-design/icons';
 
-function HomeAdmin() {
-
-    // const navigate = useNavigate();
-
-    // const homeAdmin = () => {
-    //     navigate('/admin/home-admin');
-    // }
-
-    // useEffect(() => {
-    //     homeAdmin();
-    // }, [])
+function HomeProjectLead() {
 
     const items = [
         {
@@ -23,28 +12,20 @@ function HomeAdmin() {
             label: 'Home',
             icon: <HomeOutlined />
         },
+
         {
             key: 'sub1',
-            label: 'Project Manager',
-            icon: <MailOutlined />,
-            children: [
-                {
-                    key: 'create-a-project',
-                    label: 'Create a Project',
-                },
-            ],
+            label: 'User Information',
+            icon: <FormOutlined />
         },
+
+
         {
             key: 'sub2',
-            label: 'User Manager',
-            icon: <AppstoreOutlined />,
-            children: [
-                {
-                    key: 'create-a-user',
-                    label: 'Create a User',
-                },
-            ],
+            label: 'Change Password',
+            icon: <KeyOutlined />
         },
+
         {
             key: 'sub4',
             label: 'Setting',
@@ -68,19 +49,6 @@ function HomeAdmin() {
             title: "Project Name",
             dataIndex: "name",
             key: "name"
-        },
-    ];
-
-    const userColumns = [
-        {
-            title: 'Username',
-            dataIndex: 'username',
-            key: 'username',
-        },
-        {
-            title: 'Name',
-            dataIndex: 'name',
-            key: 'name',
         },
     ];
 
@@ -108,18 +76,9 @@ function HomeAdmin() {
                         <Table columns={projectColumns} />
                     </div>
                 </div>
-                <div className='info-home'>
-                    <div>
-                        <UnorderedListOutlined />
-                        <label className="title">USER LIST</label>
-                    </div>
-                    <div>
-                        <Table columns={userColumns} />
-                    </div>
-                </div>
             </div>
         </>
     );
 }
 
-export default HomeAdmin;
+export default HomeProjectLead;

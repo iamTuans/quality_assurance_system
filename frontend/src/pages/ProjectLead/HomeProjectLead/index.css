@@ -1,0 +1,19 @@
+.group-home {
+    display: flex;
+    gap: 5px;
+}
+
+.menu-home {
+    border: 1px solid #dcdcdc;
+}
+
+.info-home {
+    border: 1px solid #dcdcdc;
+    width: 100%;
+}
+
+/* .title {
+    padding-left: 10px; 
+    font-size: 16px;
+    font-weight: bold;
+} */
