@@ -3,12 +3,14 @@ import "./index.css"
 import axios from "axios";
 import configs from "../../../.configs";
 import moment from "moment";
-import { Input, Button, Table, Select, Tag } from "antd";
+
+import { Input, Button, Table, Select, Tag, Menu } from "antd";
+import { HomeOutlined, MailOutlined, AppstoreOutlined, SettingOutlined, SearchOutlined, UnorderedListOutlined, PlusCircleOutlined } from '@ant-design/icons';
 
 function UserManager() {
 
     const [users, setUsers] = React.useState([]);
-    
+
 
     const [username, setUsername] = React.useState(null);
     const [password, setPassword] = React.useState(null);
@@ -26,13 +28,13 @@ function UserManager() {
                 Authorization: localStorage.getItem("token") || "token"
             }
         })
-        .then(res => {
-            alert("User created successfully!");
-            fetchUsers();
-        })
-        .catch(err => {
-            alert("Something went wrong!")
-        })
+            .then(res => {
+                alert("User created successfully!");
+                fetchUsers();
+            })
+            .catch(err => {
+                alert("Something went wrong!")
+            })
     }
 
     const fetchUsers = async () => {
@@ -41,21 +43,21 @@ function UserManager() {
                 Authorization: localStorage.getItem("token") || "token"
             }
         })
-        .then(res => {
-            const usersBuilded = res.data.users.map(user => {
-                return {
-                    key: user._id,
-                    username: user.username,
-                    name: user.name || "",
-                    role: user.role,
-                    createdAt: user.createdAt
-                }
-            });
-            setUsers(usersBuilded);
-        })
-        .catch(err => {
-            alert("Something went wrong!")
-        })
+            .then(res => {
+                const usersBuilded = res.data.users.map(user => {
+                    return {
+                        key: user._id,
+                        username: user.username,
+                        name: user.name || "",
+                        role: user.role,
+                        createdAt: user.createdAt
+                    }
+                });
+                setUsers(usersBuilded);
+            })
+            .catch(err => {
+                alert("Something went wrong!")
+            })
     }
 
     const columns = [
@@ -98,32 +100,97 @@ function UserManager() {
         }
     ]
 
+    const items = [
+        {
+            key: 'sub0',
+            label: 'Home',
+            icon: <HomeOutlined />
+        },
+        {
+            key: 'sub1',
+            label: 'Project Manager',
+            icon: <MailOutlined />,
+            children: [
+                {
+                    key: 'create-a-project',
+                    label: 'Create a Project',
+                },
+            ],
+        },
+        {
+            key: 'sub2',
+            label: 'User Manager',
+            icon: <AppstoreOutlined />,
+            children: [
+                {
+                    key: 'create-a-user',
+                    label: 'Create a User',
+                },
+            ],
+        },
+        {
+            key: 'sub4',
+            label: 'Setting',
+            icon: <SettingOutlined />,
+            children: [
+                {
+                    key: 'sign-out',
+                    label: 'Sign Out'
+                },
+            ],
+        },
+    ];
+
     React.useEffect(() => {
         fetchUsers();
     }, [])
 
+    const onClick = (e) => {
+        console.log('click ', e);
+    };
+
     return (
-        <div style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px",
-        }}>
-            <div style={{
-                display: "flex",
-                flexDirection: "row",
-                gap: "10px"
-            }}>
-                <Input placeholder="Username" size="large" onChange={(e) => setUsername(e.target.value)} />
-                <Input placeholder="Default Password" size="large" onChange={(e) => setPassword(e.target.value)} />
-                <Button type="primary" size="large" onClick={() => createUser()}>Create</Button>
+        <div className="group">
+            <div className="group-column-left">
+            <Menu
+                    onClick={onClick}
+                    style={{ width: 256 }}
+                    mode="inline"
+                    items={items}
+                />
+        </div>
+        <div className="group-column-right">
+            <div className="group-create-user">
+                <div>
+                    <SearchOutlined style={{ fontSize: '15px' }} />
+                    <label className="title">SEARCH</label>
+                </div>
+                <div className="search-user">
+                    <Input placeholder="Enter Key Word" size="large" />
+                    <Button type="primary" size="large">Search</Button>
+                </div>
             </div>
-            <div>
-                <Table columns={columns} dataSource={users} pagination={
-                    {
-                        pageSize: 15
-                    }
-                }/>
+            <div className="group-create-user">
+                <div>
+                    <PlusCircleOutlined />
+                    <label className="title">CREATE A USER</label>
+                </div>
+                <div className="create-user">
+                    <Input placeholder="Username" size="large" onChange={(e) => setUsername(e.target.value)} />
+                    <Input placeholder="Default Password" size="large" onChange={(e) => setPassword(e.target.value)} />
+                    <Button type="primary" size="large" onClick={() => createUser()}>Create</Button>
+                </div>
             </div>
+            <div className="group-create-user">
+                <div>
+                    <UnorderedListOutlined />
+                    <label className="title">USER LIST</label>
+                </div>
+                <div>
+                    <Table columns={columns} dataSource={users} pagination />
+                </div>
+            </div>
+        </div>
         </div>
     )
 }

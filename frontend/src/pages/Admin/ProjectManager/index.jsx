@@ -4,8 +4,8 @@ import axios from "axios";
 
 import "./index.css";
 
-import { Input, Button, Table, Select, Tag } from "antd";
-import { SearchOutlined, UnorderedListOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { Input, Button, Table, Select, Tag, Menu } from "antd";
+import { HomeOutlined, MailOutlined, AppstoreOutlined, SettingOutlined, SearchOutlined, UnorderedListOutlined, PlusCircleOutlined } from '@ant-design/icons';
 
 function ProjectManager() {
 
@@ -146,41 +146,96 @@ function ProjectManager() {
         }
     ]
 
+    const items = [
+        {
+            key: 'sub0',
+            label: 'Home',
+            icon: <HomeOutlined />
+        },
+        {
+            key: 'sub1',
+            label: 'Project Manager',
+            icon: <MailOutlined />,
+            children: [
+                {
+                    key: 'create-a-project',
+                    label: 'Create a Project',
+                },
+            ],
+        },
+        {
+            key: 'sub2',
+            label: 'User Manager',
+            icon: <AppstoreOutlined />,
+            children: [
+                {
+                    key: 'create-a-user',
+                    label: 'Create a User',
+                },
+            ],
+        },
+        {
+            key: 'sub4',
+            label: 'Setting',
+            icon: <SettingOutlined />,
+            children: [
+                {
+                    key: 'sign-out',
+                    label: 'Sign Out'
+                },
+            ],
+        },
+    ];
+
     React.useEffect(() => {
         fetchProjects();
         fetchPms();
     }, [])
 
+    const onClick = (e) => {
+        console.log('click ', e);
+    };
+
     return (
-        <div>
-            <div className="group-create-project">
-                <div>
-                    <SearchOutlined style={{ fontSize: '15px' }} />
-                    <label className="title">SEARCH</label>
-                </div>
-                <div className="search-project">
-                    <Input placeholder="Enter Project Code" size="large" onChange={(e) => setProjectCode(e.target.value)} />
-                    <Button type="primary" size="large">Search</Button>
-                </div>
+        <div className="group">
+            <div className="group-column-left">
+                <Menu
+                    onClick={onClick}
+                    style={{ width: 256 }}
+                    mode="inline"
+                    items={items}
+                />
             </div>
-            <div className="group-create-project">
-                <div>
-                    <PlusCircleOutlined />
-                    <label className="title">CREATE A PROJECT</label>
+            <div className="group-column-right">
+                <div className="group-create-project">
+                    <div>
+                        <SearchOutlined style={{ fontSize: '15px' }} />
+                        <label className="title">SEARCH</label>
+                    </div>
+                    <div className="search-project">
+                        <Input placeholder="Enter Key Word" size="large" />
+                        <Button type="primary" size="large">Search</Button>
+                    </div>
                 </div>
-                <div className="create-project">
-                    <Input placeholder="Project ID" size="large" onChange={(e) => setProjectCode(e.target.value)} />
-                    <Select placeholder="Project Lead" size="large" style={{ width: "300px" }} options={pms} onChange={(pm_username) => setSelectedPm(pm_username)} />
-                    <Button type="primary" size="large" onClick={() => createProject()}>Create</Button>
+                <div className="group-create-project">
+                    <div>
+                        <PlusCircleOutlined />
+                        <label className="title">CREATE A PROJECT</label>
+                    </div>
+                    <div className="create-project">
+                        <Input placeholder="Project Code" size="large" onChange={(e) => setProjectCode(e.target.value)} />
+                        <Select placeholder="Project Lead" size="large" style={{ width: "300px" }} options={pms} onChange={(pm_username) => setSelectedPm(pm_username)} />
+                        <Button type="primary" size="large" onClick={() => createProject()}>Create</Button>
+                    </div>
                 </div>
-            </div>
-            <div className="group-create-project">
-                <div>
-                    <UnorderedListOutlined />
-                    <label className="title">PROJECT LIST</label>
-                </div>
-                <div>
-                    <Table dataSource={projects} columns={columns} />
+                <div className="group-create-project">
+                    <div>
+                        <UnorderedListOutlined />
+                        <label className="title">PROJECT LIST</label>
+                    </div>
+                    <div>
+                        <Table dataSource={projects} columns={columns} />
+                    </div>
                 </div>
             </div>
         </div>

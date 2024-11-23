@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import Login from './pages/Login';
-import Home from './pages/Home';
+import HomeAdmin from './pages/Admin/HomeAdmin';
 
 //Admin Function
 import UserManager from './pages/Admin/UserManager';
@@ -16,8 +16,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={
-          <PrivateRouter enabled={['admin', 'user']}>
-            <Home />
+          <PrivateRouter enabled={['admin']}>
+            <HomeAdmin />
           </PrivateRouter>
         } />
 
