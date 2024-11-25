@@ -1,6 +1,7 @@
 import React from "react";
 import configs from "../../../.configs";
 import axios from "axios";
+import moment from 'moment';
 
 import "./index.css";
 
@@ -110,12 +111,14 @@ function HomePM() {
         {
             title: "Start Date",
             dataIndex: "start_date",
-            key: "start_date"
+            key: "start_date",
+            render: (text) => (text ? moment(text, "YYYY-MM-DD").format("DD/MM/YYYY") : null)
         },
         {
             title: "End Date",
             dataIndex: "end_date",
-            key: "end_date"
+            key: "end_date",
+            render: (text) => (text ? moment(text, "YYYY-MM-DD").format("DD/MM/YYYY") : null)
         },
         {
             title: "Status",
@@ -149,13 +152,19 @@ function HomePM() {
         {
             key: 'sub0',
             label: 'Home',
-            icon: <HomeOutlined />
+            icon: <HomeOutlined />,
+            onClick: () => {
+                window.location.href = '/pm/home';
+            }
         },
 
         {
             key: 'sub1',
             label: 'User Information',
-            icon: <FormOutlined />
+            icon: <FormOutlined />,
+            onClick: () => {
+                window.location.href = '/pm/change-info';
+            }
         },
 
 
@@ -179,8 +188,6 @@ function HomePM() {
                 },
             ],
         }
-        
-        
     ];
 
     React.useEffect(() => {
@@ -196,7 +203,6 @@ function HomePM() {
             <div className="group-column-left">
                 <Menu
                     onClick={onClick}
-                    // onClick={() => window.location.href = `/logout`}
                     style={{ width: 256 }}
                     mode="inline"
                     items={items}
@@ -219,7 +225,7 @@ function HomePM() {
                         <label className="title">PROJECT LIST</label>
                     </div>
                     <div>
-                        <Table dataSource={projects} columns={columns} />
+                        <Table dataSource={projects} columns={columns}></Table>
                     </div>
                 </div>
             </div>

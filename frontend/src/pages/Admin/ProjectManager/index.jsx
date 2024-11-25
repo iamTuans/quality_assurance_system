@@ -1,6 +1,7 @@
 import React from "react";
 import configs from "../../../.configs";
 import axios from "axios";
+import moment from 'moment';
 
 import "./index.css";
 
@@ -163,12 +164,14 @@ function ProjectManager() {
         {
             title: "Start Date",
             dataIndex: "start_date",
-            key: "start_date"
+            key: "start_date",
+            render: (text) => (text ? moment(text, "YYYY-MM-DD").format("DD/MM/YYYY") : null)
         },
         {
             title: "End Date",
             dataIndex: "end_date",
-            key: "end_date"
+            key: "end_date",
+            render: (text) => (text ? moment(text, "YYYY-MM-DD").format("DD/MM/YYYY") : null)
         },
         {
             title: "Customer",
@@ -198,7 +201,10 @@ function ProjectManager() {
         {
             key: 'sub0',
             label: 'Home',
-            icon: <HomeOutlined />
+            icon: <HomeOutlined />,
+            onClick: () => {
+                window.location.href = '/';
+            }
         },
         {
             key: 'sub1',
@@ -208,6 +214,9 @@ function ProjectManager() {
                 {
                     key: 'create-a-project',
                     label: 'Create a Project',
+                    onClick: () => {
+                        window.location.href = '/admin/project-manager';
+                    }
                 },
             ],
         },
@@ -219,6 +228,9 @@ function ProjectManager() {
                 {
                     key: 'create-a-user',
                     label: 'Create a User',
+                    onClick: () => {
+                        window.location.href = '/admin/user-manager';
+                    }
                 },
             ],
         },
@@ -229,7 +241,10 @@ function ProjectManager() {
             children: [
                 {
                     key: 'log-out',
-                    label: 'Loh Out'
+                    label: 'Loh Out',
+                    onClick: () => {
+                        window.location.href = '/logout';
+                    }
                 },
             ],
         },

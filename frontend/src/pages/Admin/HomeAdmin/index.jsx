@@ -21,7 +21,10 @@ function HomeAdmin() {
         {
             key: 'sub0',
             label: 'Home',
-            icon: <HomeOutlined />
+            icon: <HomeOutlined />,
+            onClick: () => {
+                window.location.href = '/';
+            }
         },
         {
             key: 'sub1',
@@ -31,6 +34,9 @@ function HomeAdmin() {
                 {
                     key: 'create-a-project',
                     label: 'Create a Project',
+                    onClick: () => {
+                        window.location.href = '/admin/project-manager';
+                    }
                 },
             ],
         },
@@ -52,7 +58,10 @@ function HomeAdmin() {
             children: [
                 {
                     key: 'log-out',
-                    label: 'Log Out'
+                    label: 'Log Out',
+                    onClick: () => {
+                        window.location.href = '/logout';
+                    }
                 },
             ],
         },

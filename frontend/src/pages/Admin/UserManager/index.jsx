@@ -139,7 +139,10 @@ function UserManager() {
         {
             key: 'sub0',
             label: 'Home',
-            icon: <HomeOutlined />
+            icon: <HomeOutlined />,
+            onClick: () => {
+                window.location.href = '/';
+            }
         },
         {
             key: 'sub1',
@@ -149,6 +152,9 @@ function UserManager() {
                 {
                     key: 'create-a-project',
                     label: 'Create a Project',
+                    onClick: () => {
+                        window.location.href = '/admin/project-manager';
+                    }
                 },
             ],
         },
@@ -160,6 +166,9 @@ function UserManager() {
                 {
                     key: 'create-a-user',
                     label: 'Create a User',
+                    onClick: () => {
+                        window.location.href = '/admin/user-manager';
+                    }
                 },
             ],
         },
@@ -170,7 +179,10 @@ function UserManager() {
             children: [
                 {
                     key: 'sign-out',
-                    label: 'Sign Out'
+                    label: 'Sign Out',
+                    onClick: () => {
+                        window.location.href = '/logout';
+                    }
                 },
             ],
         },

@@ -26,7 +26,7 @@ import {
     UnorderedListOutlined,
 } from "@ant-design/icons";
 
-function EditProject() {
+function ChangeInfo() {
 
     const { projectID } = useParams();
     const [project, setProject] = React.useState({
@@ -42,26 +42,6 @@ function EditProject() {
         status: null
     });
     const [loading, setLoading] = React.useState(false);
-
-    const fetchProjectInfo = async () => {
-        setLoading(true);
-        await axios.get(`${configs.API_URL}/general/get-project-info?project_code=${projectID}`, {
-            headers: {
-                Authorization: localStorage.getItem("token") || "token"
-            }
-        })
-            .then(res => {
-                setProject(_prev => res.data.project);
-            })
-            .catch(err => {
-                alert("Something went wrong!")
-            })
-        setLoading(false);
-    }
-
-    React.useEffect(() => {
-        fetchProjectInfo();
-    }, []);
 
     const { RangePicker } = DatePicker;
 
@@ -127,8 +107,6 @@ function EditProject() {
 
     return (
         loading ? <div>Loading...</div> :
-            project?.code === null ?
-                <div>Project not found!</div> :
                 <div className='group'>
                     <div className="group-column-change-info-project-left">
                         <Menu
@@ -140,7 +118,7 @@ function EditProject() {
                     </div>
                     <div className="group-column-change-info-project-right">
                         <div className='title'>
-                            <label className="title">CHANGE PROJECT INFOMATION</label>
+                            <label className="title">CHANGE USER INFOMATION</label>
                         </div>
                         <div className="group-change-info-project">
                         <Form
@@ -151,18 +129,18 @@ function EditProject() {
                             initialValues={{ variant: 'outlined' }}
                         >
 
-                            <Form.Item label="Project Code" name="project_code" rules={[{ required: true, message: 'Please input!' }]}>
+                            <Form.Item label="Username" name="username" rules={[{ required: true, message: 'Please input!' }]}>
                                 <Input defaultValue={project?.code} />
                             </Form.Item>
                             <Form.Item
-                                label="Name"
-                                name="name"
+                                label="Full Name"
+                                name="full-name"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
-                                <Input.TextArea style={{ width: '100%' }} />
+                                <Input style={{ width: '100%' }} />
                             </Form.Item>
 
-                            <Form.Item
+                            {/* <Form.Item
                                 label="Rank"
                                 name="rank"
                                 rules={[{ required: true, message: 'Please input!' }]}
@@ -176,11 +154,11 @@ function EditProject() {
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
                                 <Select />
-                            </Form.Item>
+                            </Form.Item> */}
 
                             <Form.Item
-                                label="Start Date"
-                                name="start_date"
+                                label="Date of Birth"
+                                name="date_of_birth"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
                                 <DatePicker
@@ -191,28 +169,36 @@ function EditProject() {
                             </Form.Item>
 
                             <Form.Item
-                                label="End Date"
-                                name="end_date"
+                                label="Job"
+                                name="job"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
-                                <DatePicker style={{ width: '100%' }} />
+                                <Input/>
                             </Form.Item>
 
                             <Form.Item
-                                label="Customer"
-                                name="customer"
+                                label="Department"
+                                name="department"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
-                                <Input.TextArea />
+                                <Input/>
                             </Form.Item>
 
                             <Form.Item
+                                label="Company"
+                                name="company"
+                                rules={[{ required: true, message: 'Please input!' }]}
+                            >
+                                <Input/>
+                            </Form.Item>
+
+                            {/* <Form.Item
                                 label="Status"
                                 name="status"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
                                 <Select />
-                            </Form.Item>
+                            </Form.Item> */}
 
                             <Form.Item wrapperCol={{ offset: 6, span: 16 }}>
                                 <Button type="primary" onClick={() => window.location.href = `/pm/home`} htmlType="submit">
@@ -226,4 +212,4 @@ function EditProject() {
     )
 }
 
-export default EditProject;
+export default ChangeInfo;

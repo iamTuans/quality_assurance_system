@@ -12,6 +12,9 @@ import HomeAdmin from './pages/Admin/HomeAdmin';
 //ProjectLead Function
 import HomePM from './pages/ProjectLead/HomePM';
 import PM_EditProject from './pages/ProjectLead/EditProject'
+import PM_ChangeInfo from './pages/ProjectLead/ChangeInfo'
+
+
 import PrivateRouter from "./middlewares/PrivateRouter";
 import PublicRouter from './middlewares/PublicRouter';
 import Error from './pages/Error';
@@ -60,6 +63,13 @@ function App() {
             <PM_EditProject />
           </PrivateRouter>
         } />
+
+        <Route path="/pm/change-info" element={
+          <PrivateRouter enabled={['pm']}>
+            <PM_ChangeInfo />
+          </PrivateRouter>
+        } />
+
         <Route path="*" element={
           <Error />
         } />

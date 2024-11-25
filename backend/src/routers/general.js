@@ -30,13 +30,33 @@ router.get('/get-project-info', verifyToken, async (req, res) => {
             });
         }
 
-        console.log(foundProject);
-
-        if (auth.role == ROLE.PM || auth.role == ROLE.ADMIN) {
+        if (auth.role == ROLE.ADMIN) {
             return res.status(200).send({
                 message: 'Get project info successful!',
                 project: foundProject
             })
+        }
+
+        if(auth.role == ROLE.PM) {
+            if (foundProject.leader._id != auth.id) {
+                return res.status(401).send({
+                    message: 'Unauthorized!'
+                });
+            }
+            return res.status(200).send({
+                message: 'Get project info successful!',
+                project: foundProject
+            });
+        }
+
+        const foundProjectRole = projectRoleModel
+            .findOne({ user_id: newMongoId(auth.id), project_id: foundProject._id })
+            .lean();
+        
+        if (!foundProjectRole) {
+            return res.status(401).send({
+                message: 'Unauthorized!'
+            });
         }
 
         if (auth.role == ROLE.BA) {
