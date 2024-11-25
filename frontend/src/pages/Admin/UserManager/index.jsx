@@ -4,7 +4,7 @@ import axios from "axios";
 import configs from "../../../.configs";
 import moment from "moment";
 
-import { Input, Button, Table, Select, Tag, Menu } from "antd";
+import { Input, Button, Table, Select, Tag, Menu, message } from "antd";
 import { HomeOutlined, CopyOutlined, AppstoreOutlined, SettingOutlined, SearchOutlined, UnorderedListOutlined, PlusCircleOutlined } from '@ant-design/icons';
 
 function UserManager() {
@@ -31,6 +31,7 @@ function UserManager() {
                 }
             })
                 .then(res => {
+                    message.success(res.data.message); //thong bao ra man hinh message
                     const usersBuilded = res.data.users.map(user => {
                         return {
                             key: user._id,
@@ -221,7 +222,7 @@ function UserManager() {
                         <label className="title">USER LIST</label>
                     </div>
                     <div>
-                        <Table columns={columns} dataSource={users} pagination />
+                        <Table columns={columns} dataSource={users} pagination loading={loading} />
                     </div>
                 </div>
             </div>

@@ -2,6 +2,7 @@ const express = require('express');
 const ROLE = require('../constants/ROLE');
 const router = express.Router();
 const moment = require('moment');
+const PROJECT = require('../constants/PROJECT');
 
 const { verifyToken, newMongoId } = require('../utils/utils');
 
@@ -98,6 +99,24 @@ router.post('/change-project-info', verifyToken, async (req, res) => {
             status,
         } = req.body;
 
+        if(!PROJECT.RANK.indexOf(rank)) { //check rank chi nhap dc ABCD
+            return res.status(400).send({
+                message: 'Invalid rank!'
+            });
+        }
+
+        if(!PROJECT.CATEGORY.indexOf(category)) {
+            return res.status(400).send({
+                message: 'Invalid category!'
+            });
+        }
+
+        if(!PROJECT.STATUS.indexOf(status)) {
+            return res.status(400).send({
+                message: 'Invalid status!'
+            });
+        }
+
         const foundProject = await projectModel
             .findOne({ code: project_code });
         if (!foundProject) {
@@ -134,6 +153,29 @@ router.post('/change-project-info', verifyToken, async (req, res) => {
 
     } catch (error) {
         console.log(error);
+        return res.status(500).send({
+            message: 'Internal server error!'
+        });
+    }
+});
+
+router.get('/get-projects', verifyToken, async (req, res) => {
+    try {
+        const auth = req.auth;
+        if (auth?.role != ROLE.PM) { //kiemtra role 
+            return res.status(401).send({
+                message: 'Unauthorized!'
+            });
+        }
+
+        const projects = await projectModel
+            .find({ leader: newMongoId(auth.id)})
+            .populate('creator', 'username')
+            .populate('leader', 'username');
+        return res.status(200).send({
+            projects
+        });
+    } catch (err) {
         return res.status(500).send({
             message: 'Internal server error!'
         });

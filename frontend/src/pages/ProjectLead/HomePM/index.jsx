@@ -4,25 +4,19 @@ import axios from "axios";
 
 import "./index.css";
 
-import { Input, Button, Table, Select, Tag, Menu } from "antd";
+import { Input, Button, Table, Tag, Menu } from "antd";
 import {
     HomeOutlined,
-    CopyOutlined,
-    AppstoreOutlined,
+    KeyOutlined, 
+    FormOutlined,
     SettingOutlined,
     SearchOutlined,
     UnorderedListOutlined,
-    PlusCircleOutlined
 } from "@ant-design/icons";
 
-function ProjectManager() {
+function HomePM() {
 
     const [projects, setProjects] = React.useState([]);
-
-    const [pms, setPms] = React.useState([]);
-
-    const [selectedPm, setSelectedPm] = React.useState(null);
-    const [projectCode, setProjectCode] = React.useState(null);
 
     const [projectKeyword, setProjectKeyword] = React.useState(null);
 
@@ -64,30 +58,8 @@ function ProjectManager() {
         setLoading(false);
     }
 
-    const createProject = async () => {
-        if (!selectedPm || !projectCode) {
-            alert("Please fill all fields!");
-            return;
-        }
-        await axios.post(`${configs.API_URL}/admin/create-project`, {
-            leader_username: selectedPm,
-            project_code: projectCode
-        }, {
-            headers: {
-                Authorization: localStorage.getItem("token") || "token"
-            }
-        })
-            .then(res => {
-                alert("Project created successfully!");
-                fetchProjects();
-            })
-            .catch(err => {
-                alert("Something went wrong!")
-            })
-    }
-
     const fetchProjects = async () => {
-        await axios.get(`${configs.API_URL}/admin/get-projects`, {
+        await axios.get(`${configs.API_URL}/pm/get-projects`, {
             headers: {
                 Authorization: localStorage.getItem("token") || "token"
             }
@@ -114,26 +86,6 @@ function ProjectManager() {
             })
     }
 
-    const fetchPms = async () => {
-        await axios.get(`${configs.API_URL}/admin/get-users?role=pm`, {
-            headers: {
-                Authorization: localStorage.getItem("token") || "token"
-            }
-        })
-            .then(res => {
-                const pmsBuilded = res.data.users.map(user => {
-                    return {
-                        label: user.name,
-                        value: user.username
-                    }
-                })
-                setPms(pmsBuilded);
-            })
-            .catch(err => {
-                alert("Something went wrong!")
-            })
-    }
-
     const columns = [
         {
             title: "Project Code",
@@ -151,11 +103,6 @@ function ProjectManager() {
             key: "rank"
         },
         {
-            title: "Category",
-            dataIndex: "category",
-            key: "category"
-        },
-        {
             title: "Project Lead",
             dataIndex: "leader",
             key: "leader"
@@ -169,11 +116,6 @@ function ProjectManager() {
             title: "End Date",
             dataIndex: "end_date",
             key: "end_date"
-        },
-        {
-            title: "Customer",
-            dataIndex: "customer",
-            key: "customer"
         },
         {
             title: "Status",
@@ -191,6 +133,15 @@ function ProjectManager() {
                 }
                 return <></>
             }
+        },
+        {
+            title: "Action",
+            key: "Action",
+            render: (_, {code}) => {
+                return (
+                    <Button type="primary" onClick={() => window.location.href = `/pm/project/edit/${code}`} size="large" danger> Edit </Button>
+                )
+            }
         }
     ]
 
@@ -200,28 +151,20 @@ function ProjectManager() {
             label: 'Home',
             icon: <HomeOutlined />
         },
+
         {
             key: 'sub1',
-            label: 'Project Manager',
-            icon: <CopyOutlined />,
-            children: [
-                {
-                    key: 'create-a-project',
-                    label: 'Create a Project',
-                },
-            ],
+            label: 'User Information',
+            icon: <FormOutlined />
         },
+
+
         {
             key: 'sub2',
-            label: 'User Manager',
-            icon: <AppstoreOutlined />,
-            children: [
-                {
-                    key: 'create-a-user',
-                    label: 'Create a User',
-                },
-            ],
+            label: 'Change Password',
+            icon: <KeyOutlined />
         },
+
         {
             key: 'sub4',
             label: 'Setting',
@@ -229,15 +172,19 @@ function ProjectManager() {
             children: [
                 {
                     key: 'log-out',
-                    label: 'Loh Out'
+                    label: 'Log Out',
+                    onClick: () => {
+                        window.location.href = '/logout';
+                    },
                 },
             ],
-        },
+        }
+        
+        
     ];
 
     React.useEffect(() => {
         fetchProjects();
-        fetchPms();
     }, [])
 
     const onClick = (e) => {
@@ -249,13 +196,14 @@ function ProjectManager() {
             <div className="group-column-left">
                 <Menu
                     onClick={onClick}
+                    // onClick={() => window.location.href = `/logout`}
                     style={{ width: 256 }}
                     mode="inline"
                     items={items}
                 />
             </div>
             <div className="group-column-right">
-                <div className="group-create-project">
+                <div className="group-info-project">
                     <div>
                         <SearchOutlined style={{ fontSize: '15px' }} />
                         <label className="title">SEARCH</label>
@@ -265,24 +213,13 @@ function ProjectManager() {
                         <Button type="primary" size="large" onClick={searchByKeyword}>Search</Button>
                     </div>
                 </div>
-                <div className="group-create-project">
-                    <div>
-                        <PlusCircleOutlined />
-                        <label className="title">CREATE A PROJECT</label>
-                    </div>
-                    <div className="create-project">
-                        <Input placeholder="Project Code" size="large" onChange={(e) => setProjectCode(e.target.value)} />
-                        <Select placeholder="Project Lead" size="large" style={{ width: "300px" }} options={pms} onChange={(pm_username) => setSelectedPm(pm_username)} />
-                        <Button type="primary" size="large" onClick={() => createProject()}>Create</Button>
-                    </div>
-                </div>
-                <div className="group-create-project">
+                <div className="group-info-project">
                     <div>
                         <UnorderedListOutlined />
                         <label className="title">PROJECT LIST</label>
                     </div>
                     <div>
-                        <Table dataSource={projects} columns={columns}/>
+                        <Table dataSource={projects} columns={columns} />
                     </div>
                 </div>
             </div>
@@ -291,4 +228,4 @@ function ProjectManager() {
 }
 
 
-export default ProjectManager;
+export default HomePM;

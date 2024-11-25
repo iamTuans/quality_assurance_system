@@ -1,17 +1,20 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import Login from './pages/Login';
-import HomeAdmin from './pages/Admin/HomeAdmin';
-import HomeProjectLead from './pages/ProjectLead/HomeProjectLead';
+
+import Logout from './pages/Logout';
 
 //Admin Function
-import UserManager from './pages/Admin/UserManager';
-import ProjectManager from './pages/Admin/ProjectManager';
+import ADMIN_UserManager from './pages/Admin/UserManager';
+import ADMIN_ProjectManager from './pages/Admin/ProjectManager';
+import HomeAdmin from './pages/Admin/HomeAdmin';
 
+//ProjectLead Function
+import HomePM from './pages/ProjectLead/HomePM';
+import PM_EditProject from './pages/ProjectLead/EditProject'
 import PrivateRouter from "./middlewares/PrivateRouter";
 import PublicRouter from './middlewares/PublicRouter';
 import Error from './pages/Error';
-import Logout from './pages/Logout';
 
 function App() {
   return (
@@ -22,10 +25,6 @@ function App() {
           <PrivateRouter enabled={['admin', 'pm']}>
             <HomeAdmin />
           </PrivateRouter>
-        } />
-
-        <Route path="/home-projectlead" element={
-            <HomeProjectLead />
         } />
 
         <Route path="/login" element={
@@ -40,16 +39,27 @@ function App() {
 
         <Route path="/admin/user-manager" element={
           <PrivateRouter enabled={['admin']}>
-            <UserManager />
+            <ADMIN_UserManager />
           </PrivateRouter>
         } />
 
         <Route path="/admin/project-manager" element={
           <PrivateRouter enabled={['admin']}>
-            <ProjectManager />
+            <ADMIN_ProjectManager />
           </PrivateRouter>
         } />
 
+        <Route path="/pm/home" element={
+          <PrivateRouter enabled={['pm']}>
+            <HomePM />
+          </PrivateRouter>
+        } />
+
+        <Route path="/pm/project/edit/:projectID" element={
+          <PrivateRouter enabled={['pm']}>
+            <PM_EditProject />
+          </PrivateRouter>
+        } />
         <Route path="*" element={
           <Error />
         } />

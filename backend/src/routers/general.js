@@ -6,6 +6,7 @@ const { verifyToken, newMongoId } = require('../utils/utils');
 
 // Importing models
 const projectModel = require('../models/project.model');
+const userModel = require('../models/user.model');
 // const projectRoleModel = require('../models/projectRole.model');
 
 router.get('/get-project-info', verifyToken, async (req, res) => {
@@ -128,25 +129,25 @@ router.post('/search-user', verifyToken, async (req, res) => {
         let result_by_name = [];
 
         if(auth.role == ROLE.ADMIN) {
-            result_by_code = await projectModel
-                .find({ code: { $regex: project_keyword, $options: 'i' } })
+            result_by_code = await userModel
+                .find({ username: { $regex: project_keyword, $options: 'i' } })
                 .lean();
             
-            result_by_name = await projectModel
+            result_by_name = await userModel
                 .find({ name: { $regex: project_keyword, $options: 'i' } })
                 .lean();
         } else {
-            result_by_code = await projectModel
-                .find({ code: { $regex: project_keyword, $options: 'i' }, leader: newMongoId(auth.id) })
+            result_by_code = await userModel
+                .find({ username: { $regex: project_keyword, $options: 'i' }, leader: newMongoId(auth.id) })
                 .lean();
             
-            result_by_name = await projectModel
+            result_by_name = await userModel
                 .find({ name: { $regex: project_keyword, $options: 'i' }, leader: newMongoId(auth.id) })
                 .lean();
         }
 
         return res.status(200).send({
-            message: 'Search project successful!',
+            message: 'Search user successful!',
             users: [...result_by_code, ...result_by_name]
         });
 
