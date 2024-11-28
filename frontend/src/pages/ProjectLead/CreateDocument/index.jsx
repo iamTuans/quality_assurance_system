@@ -14,7 +14,8 @@ import {
     Select,
     Table,
     Tag,
-    Menu
+    Menu,
+    Upload
 } from 'antd';
 
 import {
@@ -22,12 +23,12 @@ import {
     KeyOutlined,
     FormOutlined,
     SettingOutlined,
-    SearchOutlined,
+    PlusOutlined,
     UnorderedListOutlined,
     AppstoreAddOutlined,
 } from "@ant-design/icons";
 
-function ChangeInfo() {
+function CreateDocument() {
 
     const { projectID } = useParams();
     const [project, setProject] = React.useState({
@@ -91,7 +92,7 @@ function ChangeInfo() {
         },
 
         {
-            key: 'sub1',
+            key: 'sub3',
             label: 'User Information',
             icon: <FormOutlined />,
             children: [
@@ -115,7 +116,7 @@ function ChangeInfo() {
             icon: <SettingOutlined />,
             children: [
                 {
-                    key: 'sub2',
+                    key: 'change-pass',
                     label: 'Change Password',
                 },
                 {
@@ -136,22 +137,29 @@ function ChangeInfo() {
         console.log('click ', e);
     };
 
+    const normFile = (e) => {
+        if (Array.isArray(e)) {
+            return e;
+        }
+        return e && e.fileList;
+    };
+
     return (
         loading ? <div>Loading...</div> :
-                <div className='group'>
-                    <div className="group-column-change-info-project-left">
-                        <Menu
-                            onClick={onClick}
-                            style={{ width: 256 }}
-                            mode="inline"
-                            items={items}
-                        />
+            <div className='group'>
+                <div className="group-column-change-info-project-left">
+                    <Menu
+                        onClick={onClick}
+                        style={{ width: 256 }}
+                        mode="inline"
+                        items={items}
+                    />
+                </div>
+                <div className="group-column-change-info-project-right">
+                    <div className='title'>
+                        <label className="title">CREATE A PROJECT</label>
                     </div>
-                    <div className="group-column-change-info-project-right">
-                        <div className='title'>
-                            <label className="title">CHANGE USER INFOMATION</label>
-                        </div>
-                        <div className="group-change-info-project">
+                    <div className="group-change-info-project">
                         <Form
                             {...formItemLayout}
                             form={form}
@@ -160,36 +168,36 @@ function ChangeInfo() {
                             initialValues={{ variant: 'outlined' }}
                         >
 
-                            <Form.Item label="Username" name="username" rules={[{ required: true, message: 'Please input!' }]}>
-                                <Input defaultValue={project?.code} />
+                            <Form.Item label="Project" name="project" rules={[{ required: true, message: 'Please input!' }]}>
+                                <Input />
                             </Form.Item>
                             <Form.Item
-                                label="Full Name"
-                                name="full-name"
+                                label="Creator"
+                                name="creator"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
                                 <Input style={{ width: '100%' }} />
                             </Form.Item>
 
-                            {/* <Form.Item
-                                label="Rank"
-                                name="rank"
+                            <Form.Item
+                                label="Name"
+                                name="name"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
-                                <Select />
+                                <Input />
                             </Form.Item>
 
                             <Form.Item
-                                label="Category"
-                                name="category"
+                                label="Version"
+                                name="version"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
-                                <Select />
-                            </Form.Item> */}
+                                <Input />
+                            </Form.Item>
 
                             <Form.Item
-                                label="Date of Birth"
-                                name="date_of_birth"
+                                label="Create date"
+                                name="create_date"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
                                 <DatePicker
@@ -200,36 +208,63 @@ function ChangeInfo() {
                             </Form.Item>
 
                             <Form.Item
-                                label="Job"
-                                name="job"
+                                label="Description"
+                                name="description"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
-                                <Input/>
+                                <Input.TextArea />
                             </Form.Item>
 
                             <Form.Item
-                                label="Department"
-                                name="department"
+                                label="Components"
+                                name="components"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
-                                <Input/>
+                                <Input />
                             </Form.Item>
 
                             <Form.Item
-                                label="Company"
-                                name="company"
+                                label="Category"
+                                name="category"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
-                                <Input/>
+                                <Input />
                             </Form.Item>
 
-                            {/* <Form.Item
-                                label="Status"
-                                name="status"
+                            <Form.Item
+                                label="Module"
+                                name="module"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
-                                <Select />
-                            </Form.Item> */}
+                                <Input />
+                            </Form.Item>
+
+                            <Form.Item 
+                            label="Upload" 
+                            valuePropName="fileList" 
+                            getValueFromEvent={normFile}
+                            rules={[{ required: true, message: 'Please upload a file!' }]}
+                            >
+                                <Upload action="/upload.do" listType="picture-card">
+                                    <button
+                                        style={{
+                                            border: 0,
+                                            background: 'none',
+                                            width: '100%'  // Fixed the syntax error here
+                                        }}
+                                        type="button"
+                                    >
+                                        <PlusOutlined />
+                                        <div
+                                            style={{
+                                                marginTop: 8,
+                                            }}
+                                        >
+                                            Upload
+                                        </div>
+                                    </button>
+                                </Upload>
+                            </Form.Item>
 
                             <Form.Item wrapperCol={{ offset: 6, span: 16 }}>
                                 <Button type="primary" onClick={() => window.location.href = `/pm/home`} htmlType="submit">
@@ -237,10 +272,10 @@ function ChangeInfo() {
                                 </Button>
                             </Form.Item>
                         </Form>
-                        </div>
                     </div>
                 </div>
+            </div>
     )
 }
 
-export default ChangeInfo;
+export default CreateDocument;

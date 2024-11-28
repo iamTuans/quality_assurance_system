@@ -13,6 +13,7 @@ import HomeAdmin from './pages/Admin/HomeAdmin';
 import HomePM from './pages/ProjectLead/HomePM';
 import PM_EditProject from './pages/ProjectLead/EditProject'
 import PM_ChangeInfo from './pages/ProjectLead/ChangeInfo'
+import CreateDocument from './pages/ProjectLead/CreateDocument';
 
 
 import PrivateRouter from "./middlewares/PrivateRouter";
@@ -67,6 +68,13 @@ function App() {
         <Route path="/pm/change-info" element={
           <PrivateRouter enabled={['pm']}>
             <PM_ChangeInfo />
+          </PrivateRouter>
+        } />
+
+
+        <Route path="/create-document" element={
+          <PrivateRouter enabled={['pm']}>
+            <CreateDocument />
           </PrivateRouter>
         } />
 

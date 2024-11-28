@@ -2,10 +2,9 @@ import React from "react";
 import configs from "../../../.configs";
 import axios from "axios";
 import moment from 'moment';
-
 import "./index.css";
 
-import { Input, Button, Table, Select, Tag, Menu } from "antd";
+import { Input, Button, Table, Select, Tag, Menu, message } from "antd";
 import {
     HomeOutlined,
     CopyOutlined,
@@ -42,6 +41,7 @@ function ProjectManager() {
                 }
             })
                 .then(res => {
+                    message.success(res.data.message);
                     const buildedProjects = res.data.projects.map(project => {
                         return {
                             key: project._id,
@@ -66,6 +66,7 @@ function ProjectManager() {
     }
 
     const createProject = async () => {
+        setLoading(true);
         if (!selectedPm || !projectCode) {
             alert("Please fill all fields!");
             return;
@@ -85,9 +86,11 @@ function ProjectManager() {
             .catch(err => {
                 alert("Something went wrong!")
             })
+            setLoading(false);
     }
 
     const fetchProjects = async () => {
+        setLoading(true);
         await axios.get(`${configs.API_URL}/admin/get-projects`, {
             headers: {
                 Authorization: localStorage.getItem("token") || "token"
@@ -113,9 +116,11 @@ function ProjectManager() {
             .catch(err => {
                 alert("Something went wrong!")
             })
+            setLoading(false);
     }
 
     const fetchPms = async () => {
+        setLoading(true);
         await axios.get(`${configs.API_URL}/admin/get-users?role=pm`, {
             headers: {
                 Authorization: localStorage.getItem("token") || "token"
@@ -133,6 +138,7 @@ function ProjectManager() {
             .catch(err => {
                 alert("Something went wrong!")
             })
+            setLoading(false);
     }
 
     const columns = [
@@ -297,7 +303,7 @@ function ProjectManager() {
                         <label className="title">PROJECT LIST</label>
                     </div>
                     <div>
-                        <Table dataSource={projects} columns={columns}/>
+                        <Table dataSource={projects} columns={columns} pagination loading={loading}/>
                     </div>
                 </div>
             </div>

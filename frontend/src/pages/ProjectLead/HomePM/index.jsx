@@ -5,10 +5,10 @@ import moment from 'moment';
 
 import "./index.css";
 
-import { Input, Button, Table, Tag, Menu } from "antd";
+import { Input, Button, Table, Tag, Menu, message } from "antd";
 import {
     HomeOutlined,
-    KeyOutlined, 
+    AppstoreAddOutlined,
     FormOutlined,
     SettingOutlined,
     SearchOutlined,
@@ -36,6 +36,7 @@ function HomePM() {
                 }
             })
                 .then(res => {
+                    message.success(res.data.message);
                     const buildedProjects = res.data.projects.map(project => {
                         return {
                             key: project._id,
@@ -60,6 +61,7 @@ function HomePM() {
     }
 
     const fetchProjects = async () => {
+        setLoading(true);
         await axios.get(`${configs.API_URL}/pm/get-projects`, {
             headers: {
                 Authorization: localStorage.getItem("token") || "token"
@@ -85,6 +87,7 @@ function HomePM() {
             .catch(err => {
                 alert("Something went wrong!")
             })
+        setLoading(false);
     }
 
     const columns = [
@@ -140,7 +143,7 @@ function HomePM() {
         {
             title: "Action",
             key: "Action",
-            render: (_, {code}) => {
+            render: (_, { code }) => {
                 return (
                     <Button type="primary" onClick={() => window.location.href = `/pm/project/edit/${code}`} size="large" danger> Edit </Button>
                 )
@@ -159,19 +162,45 @@ function HomePM() {
         },
 
         {
+            key: 'sub2',
+            label: 'Create',
+            icon: <AppstoreAddOutlined />,
+            children: [
+                {
+                    key: 'create-task',
+                    label: 'Create Task',
+                },
+                {
+                    key: 'create-doc',
+                    label: 'Create Document',
+                    onClick: () => {
+                        window.location.href = '/create-document';
+                    }
+                },
+                {
+                    key: 'create-bug',
+                    label: 'Create Defect',
+                },
+            ],
+        },
+
+        {
             key: 'sub1',
             label: 'User Information',
             icon: <FormOutlined />,
-            onClick: () => {
-                window.location.href = '/pm/change-info';
-            }
-        },
-
-
-        {
-            key: 'sub2',
-            label: 'Change Password',
-            icon: <KeyOutlined />
+            children: [
+                {
+                    key: 'view',
+                    label: 'View Information',
+                },
+                {
+                    key: 'change-info',
+                    label: 'Change Information',
+                    onClick: () => {
+                        window.location.href = '/pm/change-info';
+                    }
+                },
+            ],
         },
 
         {
@@ -179,6 +208,10 @@ function HomePM() {
             label: 'Setting',
             icon: <SettingOutlined />,
             children: [
+                {
+                    key: 'sub2',
+                    label: 'Change Password',
+                },
                 {
                     key: 'log-out',
                     label: 'Log Out',
@@ -225,7 +258,7 @@ function HomePM() {
                         <label className="title">PROJECT LIST</label>
                     </div>
                     <div>
-                        <Table dataSource={projects} columns={columns}></Table>
+                        <Table dataSource={projects} columns={columns} pagination loading={loading}></Table>
                     </div>
                 </div>
             </div>

@@ -5,7 +5,15 @@ import configs from "../../../.configs";
 import moment from "moment";
 
 import { Input, Button, Table, Select, Tag, Menu, message } from "antd";
-import { HomeOutlined, CopyOutlined, AppstoreOutlined, SettingOutlined, SearchOutlined, UnorderedListOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { 
+    HomeOutlined, 
+    CopyOutlined, 
+    AppstoreOutlined, 
+    SettingOutlined, 
+    SearchOutlined, 
+    UnorderedListOutlined, 
+    PlusCircleOutlined 
+} from '@ant-design/icons';
 
 function UserManager() {
 
@@ -51,6 +59,7 @@ function UserManager() {
     }
 
     const createUser = async () => {
+        setLoading(true);
         if (!username || !password) {
             alert("Please fill all fields!");
             return;
@@ -70,9 +79,11 @@ function UserManager() {
             .catch(err => {
                 alert("Something went wrong!")
             })
+            setLoading(false);
     }
 
     const fetchUsers = async () => {
+        setLoading(true);
         await axios.get(`${configs.API_URL}/admin/get-users`, {
             headers: {
                 Authorization: localStorage.getItem("token") || "token"
@@ -93,6 +104,7 @@ function UserManager() {
             .catch(err => {
                 alert("Something went wrong!")
             })
+            setLoading(false);
     }
 
     const columns = [
