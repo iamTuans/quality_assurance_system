@@ -5,15 +5,10 @@ import moment from 'moment';
 
 import "./index.css";
 
-import { Input, Button, Table, Tag, Menu, message } from "antd";
-import {
-    HomeOutlined,
-    AppstoreAddOutlined,
-    FormOutlined,
-    SettingOutlined,
-    SearchOutlined,
-    UnorderedListOutlined,
-} from "@ant-design/icons";
+import { Input, Button, Table, Tag, message } from "antd";
+
+import Layout from "../../../components/Layout";
+import { useNavigate } from "react-router-dom";
 
 function HomePM() {
 
@@ -22,6 +17,8 @@ function HomePM() {
     const [projectKeyword, setProjectKeyword] = React.useState(null);
 
     const [loading, setLoading] = React.useState(false);
+
+    const navigate = useNavigate();
 
     const searchByKeyword = async () => {
         setLoading(true);
@@ -145,124 +142,40 @@ function HomePM() {
             key: "Action",
             render: (_, { code }) => {
                 return (
-                    <Button type="primary" onClick={() => window.location.href = `/pm/project/edit/${code}`} size="large" danger> Edit </Button>
+                    <Button type="primary" onClick={() => navigate(`/pm/project/edit/${code}`)} size="large"> View </Button>
                 )
             }
         }
     ]
 
-    const items = [
-        {
-            key: 'sub0',
-            label: 'Home',
-            icon: <HomeOutlined />,
-            onClick: () => {
-                window.location.href = '/pm/home';
-            }
-        },
-
-        {
-            key: 'sub2',
-            label: 'Create',
-            icon: <AppstoreAddOutlined />,
-            children: [
-                {
-                    key: 'create-task',
-                    label: 'Create Task',
-                },
-                {
-                    key: 'create-doc',
-                    label: 'Create Document',
-                    onClick: () => {
-                        window.location.href = '/create-document';
-                    }
-                },
-                {
-                    key: 'create-bug',
-                    label: 'Create Defect',
-                },
-            ],
-        },
-
-        {
-            key: 'sub1',
-            label: 'User Information',
-            icon: <FormOutlined />,
-            children: [
-                {
-                    key: 'view',
-                    label: 'View Information',
-                },
-                {
-                    key: 'change-info',
-                    label: 'Change Information',
-                    onClick: () => {
-                        window.location.href = '/pm/change-info';
-                    }
-                },
-            ],
-        },
-
-        {
-            key: 'sub4',
-            label: 'Setting',
-            icon: <SettingOutlined />,
-            children: [
-                {
-                    key: 'sub2',
-                    label: 'Change Password',
-                },
-                {
-                    key: 'log-out',
-                    label: 'Log Out',
-                    onClick: () => {
-                        window.location.href = '/logout';
-                    },
-                },
-            ],
-        }
-    ];
-
     React.useEffect(() => {
         fetchProjects();
     }, [])
 
-    const onClick = (e) => {
-        console.log('click ', e);
-    };
-
     return (
-        <div className="group">
-            <div className="group-column-left">
-                <Menu
-                    onClick={onClick}
-                    style={{ width: 256 }}
-                    mode="inline"
-                    items={items}
-                />
-            </div>
-            <div className="group-column-right">
-                <div className="group-info-project">
-                    <div>
-                        <SearchOutlined style={{ fontSize: '15px' }} />
-                        <label className="title">SEARCH</label>
-                    </div>
-                    <div className="search-project">
-                        <Input placeholder="Enter Key Word" size="large" onChange={(e) => setProjectKeyword(e.target.value)} />
-                        <Button type="primary" size="large" onClick={searchByKeyword}>Search</Button>
-                    </div>
+        <Layout>
+            <div className="group-info-project">
+
+                aaa
+                {/* <div>
+                    <SearchOutlined style={{ fontSize: '15px' }} />
+                    <label className="title">SEARCH</label>
                 </div>
-                <div className="group-info-project">
-                    <div>
-                        <UnorderedListOutlined />
-                        <label className="title">PROJECT LIST</label>
-                    </div>
-                    <div>
-                        <Table dataSource={projects} columns={columns} pagination loading={loading}></Table>
-                    </div>
+                <div className="search-project">
+                    <Input placeholder="Enter Key Word" size="large" onChange={(e) => setProjectKeyword(e.target.value)} />
+                    <Button type="primary" size="large" onClick={searchByKeyword}>Search</Button>
                 </div>
             </div>
-        </div>
+            <div className="group-info-project">
+                <div>
+                    <UnorderedListOutlined />
+                    <label className="title">PROJECT LIST</label>
+                </div>
+                <div>
+                    <Table dataSource={projects} columns={columns} pagination loading={loading}></Table>
+                </div> */}
+            </div>
+        </Layout>
     )
 }
 

@@ -5,6 +5,31 @@ const userSchema = new Schema({
         type: String,
         required: true // truong du lieu co bat buoc hay khong?
     },
+    full_name: {
+        type: String,
+        default: null 
+    },
+    gender: {
+        type: String,
+        enum: ['male', 'female'],
+        default: null
+    },
+    date_of_birth: {
+        type: Date,
+        default: null
+    },
+    job: {
+        type: String,
+        default: null
+    },
+    department: {
+        type: String,
+        default: null
+    },
+    company: {
+        type: String,
+        default: null
+    },
     password: {
         type: String,
         required: true

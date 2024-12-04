@@ -46,7 +46,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
-router.post('/verify', verifyToken, (req, res) => {
+router.post('/verify', verifyToken, async (req, res) => {
     const auth = req.auth;
 
     if(!auth.verified) {
@@ -54,10 +54,14 @@ router.post('/verify', verifyToken, (req, res) => {
             message: 'Unauthorized!'
         });
     }
-    auth.verified = undefined;
+
+    const user = await userModel.findOne({ username: auth.username }).lean();
+    user._id = undefined;
+    user.password = undefined;
+
     return res.status(200).send({
         message: 'Authorized!',
-        auth: auth
+        auth: user
     });
 });
 

@@ -89,7 +89,7 @@ router.post('/change-project-info', verifyToken, async (req, res) => {
         }
 
         let {
-            project_code,
+            code,
             name,
             rank,
             category,
@@ -98,35 +98,34 @@ router.post('/change-project-info', verifyToken, async (req, res) => {
             customer,
             status,
         } = req.body;
-
-        if(!PROJECT.RANK.indexOf(rank)) { //check rank chi nhap dc ABCD
+        if(PROJECT.RANK.indexOf('A') === -1) { //check rank chi nhap dc ABCD
             return res.status(400).send({
                 message: 'Invalid rank!'
             });
         }
 
-        if(!PROJECT.CATEGORY.indexOf(category)) {
+        if(PROJECT.CATEGORY.indexOf(category) === -1) {
             return res.status(400).send({
                 message: 'Invalid category!'
             });
         }
 
-        if(!PROJECT.STATUS.indexOf(status)) {
+        if(!PROJECT.STATUS.indexOf(status) === -1) {
             return res.status(400).send({
                 message: 'Invalid status!'
             });
         }
 
         const foundProject = await projectModel
-            .findOne({ code: project_code });
+            .findOne({ code });
         if (!foundProject) {
             return res.status(400).send({
                 message: 'Project not found!'
             });
         }
 
-        start_date = moment.utc(start_date, 'DD/MM/YYYY').toDate(); //utc cho dung ngay, khong bi lech ngay
-        end_date = moment.utc(end_date, 'DD/MM/YYYY').toDate();
+        const parsedStartDate = moment.utc(start_date, 'YYYY-MM-DDTHH:mm:ss.SSS[Z]').toDate();
+        const parsedEndDate = moment.utc(end_date, 'YYYY-MM-DDTHH:mm:ss.SSS[Z]').toDate();
         
         if (end_date <= start_date) {
             return res.status(400).send({
@@ -140,8 +139,8 @@ router.post('/change-project-info', verifyToken, async (req, res) => {
                 name,
                 rank,
                 category,
-                start_date,
-                end_date,
+                start_date: parsedStartDate,
+                end_date: parsedEndDate,
                 customer,
                 status,
             }

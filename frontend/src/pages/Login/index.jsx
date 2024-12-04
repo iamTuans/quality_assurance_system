@@ -4,59 +4,101 @@ import axios from "axios";
 import configs from "../../.configs";
 import { useNavigate } from 'react-router-dom'; // quản lý việc navigate sang màn hình khác
 
+import {
+    Flex,
+    Box,
+    FormControl,
+    FormLabel,
+    Input,
+    Checkbox,
+    Stack,
+    Button,
+    Heading,
+    Text,
+    useColorModeValue,
+} from '@chakra-ui/react'
+import { message } from 'antd';
+
 function Login() {
-    
+
     const navigate = useNavigate();
     const [username, setUsername] = React.useState(null);
     const [password, setPassword] = React.useState(null);
+    const [loading, setLoading] = React.useState(false);
 
-    const handleLogin = async() => {
+    const handleLogin = async () => {
+        if (!username || !password) {
+            message.error("Please fill in all fields");
+            return;
+        }
+        setLoading(true);
         await axios.post(`${configs.API_URL}/auth/login`, {
             username, password
         })
-        .then(res => { //khong co loi chay dong then
-            alert(res.data.message);
-            localStorage.setItem("token", res.data.token);
-            navigate("/"); //sau khi đăng nhập thì navigave sang màn hình home
-        })
-        .catch(err => {
-            console.log(err);
-            alert("Login failed with error: " + err.response.data.message);
-        }) //co loi chay dong catch
-
-        // alert(`Username: ${username}, Password: ${password}`); //thong bao ra man hinh
+            .then(res => { //khong co loi chay dong then
+                if (res.data?.token) {
+                    message.success(res.data.message);
+                    localStorage.setItem("token", res.data.token);
+                    navigate("/"); //sau khi đăng nhập thì navigave sang màn hình home
+                } else {
+                    message.error(res.data.message);
+                }
+            })
+            .catch(err => {
+                message.error("Login failed!");
+                console.log(err);
+            }) //co loi chay dong catch
+        setLoading(false);
     }
 
-    return(
-        <div className="login-container">
-            <div className="login-panal">
-                <div className="login-panal-title">
-                    Wellcome
-                </div>
-                <div className="login-panal-form">
-                    <div className='panal-form-items'>
-                        <label className='form_label'>Username:</label>
-                        <input className='button-text' type="text" placeholder="Enter your Username" onChange={(event) => { //onChange ghi nhan su thay doi khi nhap thong tin
-                            const new_username = event.target.value;
-                            setUsername(new_username);
-                        }}/>
-                    </div>
-                    <div className='panal-form-items'>
-                        <label className='form_label'>Password:</label>
-                        <input className='button-text' type="password" placeholder="Enter your Password" onChange={(event) => {
-                            const new_password = event.target.value;
-                            setPassword(new_password);
-                        }}/>
-                    </div>
-                    <div className='login-hint'>
-                    Not a member? To request an account, please contact your administrators.
-                    </div>
-                    <div className='login-button'>
-                        <button className='button-text' onClick={handleLogin}>Login</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+    return (
+        <Flex
+            minH={'100vh'}
+            align={'center'}
+            justify={'center'}
+            bg={useColorModeValue('gray.50', 'gray.800')}>
+            <Stack spacing={8} mx={'auto'} maxW={'lg'} py={12} px={6}>
+                <Stack align={'center'}>
+                    <Heading fontSize={'4xl'}>Sign in to your account</Heading>
+                </Stack>
+                <Box
+                    rounded={'lg'}
+                    bg={useColorModeValue('white', 'gray.700')}
+                    boxShadow={'lg'}
+                    p={8}>
+                    <Stack spacing={4}>
+                        <FormLabel>Username</FormLabel>
+                        <Input type="email" placeholder="Enter your Username" onChange={(e) => setUsername(e.target.value)} />
+                        <FormLabel>Password</FormLabel>
+                        <Input type="password" placeholder="Enter your Password" onChange={(e) => setPassword(e.target.value)} />
+                        <Stack spacing={10}>
+                            <Stack
+                                direction={{ base: 'column', sm: 'row' }}
+                                align={'start'}
+                                justify={'space-between'}>
+                                <Checkbox>Remember me</Checkbox>
+                                <Text color={'blue.400'}>Forgot password?</Text>
+                            </Stack>
+                            <Stack>
+                                <Text>Not a member? To request an account, please contact your administrators.</Text>
+                            </Stack>
+                            <Button
+                                bg={'blue.400'}
+                                color={'white'}
+                                _hover={{
+                                    bg: 'blue.500',
+                                }}
+                                onClick={() => handleLogin()}
+                                isLoading={loading}
+                                loadingText="Signing in..."
+                            >
+                                Sign in
+                            </Button>
+                        </Stack>
+                    </Stack>
+                </Box>
+            </Stack>
+        </Flex>
     )
 }
 

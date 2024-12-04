@@ -33,6 +33,7 @@ function PrivateRouter({ children, enabled }) {
                 }
             })
             .catch(_ => {
+                console.log(_);
                 removeToken();
             })
     }

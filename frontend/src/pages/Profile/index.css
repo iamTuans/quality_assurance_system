@@ -1,0 +1,61 @@
+.group-change-info-project {
+    display: flex;
+    gap: 5px;
+}
+
+.group-column-change-info-project {
+    padding-top: 10px;
+    border: 1px solid #dcdcdc;
+    background-color: white;
+}
+
+.group-change-info-project {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    margin: 10px;
+}
+
+.title {
+    margin-top: 20px;
+}
+
+.information-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 16px;
+}
+
+.information-form > .form-item {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+}
+
+.information-form > .form-item > .form-item-label {
+    width: 100px;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 10px;
+    padding-right: 10px;
+}
+
+.information-form > .form-item > .form-item-value {
+    width: 300px;
+    border-bottom: 1px solid black;
+    padding-top: 10px;
+}
+
+.information-form > .form-item > .form-item-edit {
+    width: 300px;
+    padding-top: 10px;
+}
+/* 
+.button-edit {
+    width: 100px;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 10px;
+} */

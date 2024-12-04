@@ -6,11 +6,13 @@ const auth_router = require('./auth');
 const admin_router = require('./admin');
 const pm_router = require('./pm');
 const general_router = require('./general');
+const user_router = require('./user');
 
 router.use('/auth', auth_router);
 router.use('/admin', admin_router);
 router.use('/pm', pm_router);
 router.use('/general', general_router);
+router.use('/user', user_router);
 
 router.get('/', (_req, res) => {
     return res.status(200).send({

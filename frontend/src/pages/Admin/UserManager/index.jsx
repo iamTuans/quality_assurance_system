@@ -4,16 +4,14 @@ import axios from "axios";
 import configs from "../../../.configs";
 import moment from "moment";
 
-import { Input, Button, Table, Select, Tag, Menu, message } from "antd";
-import { 
-    HomeOutlined, 
-    CopyOutlined, 
-    AppstoreOutlined, 
-    SettingOutlined, 
-    SearchOutlined, 
-    UnorderedListOutlined, 
-    PlusCircleOutlined 
+import { Input, Button, Table, Tag, message } from "antd";
+import {
+    SearchOutlined,
+    UnorderedListOutlined,
+    PlusCircleOutlined
 } from '@ant-design/icons';
+
+import Layout from "../../../components/Layout";
 
 function UserManager() {
 
@@ -39,7 +37,7 @@ function UserManager() {
                 }
             })
                 .then(res => {
-                    message.success(res.data.message); //thong bao ra man hinh message
+                    message.success(`Match ${res.data.users.length} result(s)`); //thong bao ra man hinh message
                     const usersBuilded = res.data.users.map(user => {
                         return {
                             key: user._id,
@@ -52,7 +50,7 @@ function UserManager() {
                     setUsers(usersBuilded);
                 })
                 .catch(err => {
-                    alert("Something went wrong!")
+                    message.error("Something went wrong!");
                 })
         }
         setLoading(false);
@@ -73,13 +71,13 @@ function UserManager() {
             }
         })
             .then(res => {
-                alert("User created successfully!");
+                message.success(res.data.message);
                 fetchUsers();
             })
             .catch(err => {
-                alert("Something went wrong!")
+                message.error("Something went wrong!");
             })
-            setLoading(false);
+        setLoading(false);
     }
 
     const fetchUsers = async () => {
@@ -104,7 +102,7 @@ function UserManager() {
             .catch(err => {
                 alert("Something went wrong!")
             })
-            setLoading(false);
+        setLoading(false);
     }
 
     const columns = [
@@ -147,110 +145,43 @@ function UserManager() {
         }
     ]
 
-    const items = [
-        {
-            key: 'sub0',
-            label: 'Home',
-            icon: <HomeOutlined />,
-            onClick: () => {
-                window.location.href = '/';
-            }
-        },
-        {
-            key: 'sub1',
-            label: 'Project Manager',
-            icon: <CopyOutlined />,
-            children: [
-                {
-                    key: 'create-a-project',
-                    label: 'Create a Project',
-                    onClick: () => {
-                        window.location.href = '/admin/project-manager';
-                    }
-                },
-            ],
-        },
-        {
-            key: 'sub2',
-            label: 'User Manager',
-            icon: <AppstoreOutlined />,
-            children: [
-                {
-                    key: 'create-a-user',
-                    label: 'Create a User',
-                    onClick: () => {
-                        window.location.href = '/admin/user-manager';
-                    }
-                },
-            ],
-        },
-        {
-            key: 'sub4',
-            label: 'Setting',
-            icon: <SettingOutlined />,
-            children: [
-                {
-                    key: 'sign-out',
-                    label: 'Sign Out',
-                    onClick: () => {
-                        window.location.href = '/logout';
-                    }
-                },
-            ],
-        },
-    ];
-
     React.useEffect(() => {
         fetchUsers();
     }, [])
 
-    const onClick = (e) => {
-        console.log('click ', e);
-    };
-
     return (
-        <div className="group">
-            <div className="group-column-left">
-                <Menu
-                    onClick={onClick}
-                    style={{ width: 256 }}
-                    mode="inline"
-                    items={items}
-                />
-            </div>
-            <div className="group-column-right">
-                <div className="group-create-user">
-                    <div>
-                        <SearchOutlined style={{ fontSize: '15px' }} />
-                        <label className="title">SEARCH</label>
-                    </div>
-                    <div className="search-user">
-                        <Input placeholder="Enter Key Word" size="large" onChange={(e) => setProjectKeyword(e.target.value)} />
-                        <Button type="primary" size="large" onClick={searchByKeyword} >Search</Button>
-                    </div>
+        <Layout>
+            <div className="group-create-user">
+                <div>
+                    <SearchOutlined style={{ fontSize: '15px' }} />
+                    <label className="title">SEARCH</label>
                 </div>
-                <div className="group-create-user">
-                    <div>
-                        <PlusCircleOutlined />
-                        <label className="title">CREATE A USER</label>
-                    </div>
-                    <div className="create-user">
-                        <Input placeholder="Username" size="large" onChange={(e) => setUsername(e.target.value)} />
-                        <Input placeholder="Default Password" size="large" onChange={(e) => setPassword(e.target.value)} />
-                        <Button type="primary" size="large" onClick={() => createUser()}>Create</Button>
-                    </div>
-                </div>
-                <div className="group-create-user">
-                    <div>
-                        <UnorderedListOutlined />
-                        <label className="title">USER LIST</label>
-                    </div>
-                    <div>
-                        <Table columns={columns} dataSource={users} pagination loading={loading} />
-                    </div>
+                <div className="search-user">
+                    <Input placeholder="Enter Key Word" size="large" onChange={(e) => setProjectKeyword(e.target.value)} />
+                    <Button type="primary" size="large" onClick={searchByKeyword} >Search</Button>
                 </div>
             </div>
-        </div>
+            <div className="group-create-user">
+                <div>
+                    <PlusCircleOutlined />
+                    <label className="title">CREATE A USER</label>
+                </div>
+                <div className="create-user">
+                    <Input placeholder="Username" size="large" onChange={(e) => setUsername(e.target.value)} />
+                    <Input placeholder="Default Password" size="large" onChange={(e) => setPassword(e.target.value)} />
+                    <Button type="primary" size="large" onClick={() => createUser()}>Create</Button>
+                </div>
+            </div>
+            <div className="group-create-user">
+                <div>
+                    <UnorderedListOutlined />
+                    <label className="title">USER LIST</label>
+                </div>
+                <div>
+                    <Table columns={columns} dataSource={users} pagination loading={loading} />
+                </div>
+            </div>
+        </Layout>
     )
 }
 

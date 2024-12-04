@@ -2,32 +2,26 @@ import React from "react";
 import configs from "../../../.configs";
 import axios from "axios";
 import moment from 'moment';
+
 import "./index.css";
 
-import { Input, Button, Table, Select, Tag, Menu, message } from "antd";
+import { Input, Button, Table, Tag, message } from "antd";
 import {
-    HomeOutlined,
-    CopyOutlined,
-    AppstoreOutlined,
-    SettingOutlined,
     SearchOutlined,
     UnorderedListOutlined,
-    PlusCircleOutlined
 } from "@ant-design/icons";
 import Layout from "../../../components/Layout";
+import { useNavigate } from "react-router-dom";
 
-function ProjectManager() {
+function ProjectInfo() {
 
     const [projects, setProjects] = React.useState([]);
-
-    const [pms, setPms] = React.useState([]);
-
-    const [selectedPm, setSelectedPm] = React.useState(null);
-    const [projectCode, setProjectCode] = React.useState(null);
 
     const [projectKeyword, setProjectKeyword] = React.useState(null);
 
     const [loading, setLoading] = React.useState(false);
+
+    const navigate = useNavigate();
 
     const searchByKeyword = async () => {
         setLoading(true);
@@ -66,33 +60,9 @@ function ProjectManager() {
         setLoading(false);
     }
 
-    const createProject = async () => {
-        setLoading(true);
-        if (!selectedPm || !projectCode) {
-            alert("Please fill all fields!");
-            return;
-        }
-        await axios.post(`${configs.API_URL}/admin/create-project`, {
-            leader_username: selectedPm,
-            project_code: projectCode
-        }, {
-            headers: {
-                Authorization: localStorage.getItem("token") || "token"
-            }
-        })
-            .then(res => {
-                alert("Project created successfully!");
-                fetchProjects();
-            })
-            .catch(err => {
-                alert("Something went wrong!")
-            })
-        setLoading(false);
-    }
-
     const fetchProjects = async () => {
         setLoading(true);
-        await axios.get(`${configs.API_URL}/admin/get-projects`, {
+        await axios.get(`${configs.API_URL}/pm/get-projects`, {
             headers: {
                 Authorization: localStorage.getItem("token") || "token"
             }
@@ -120,28 +90,6 @@ function ProjectManager() {
         setLoading(false);
     }
 
-    const fetchPms = async () => {
-        setLoading(true);
-        await axios.get(`${configs.API_URL}/admin/get-users?role=pm`, {
-            headers: {
-                Authorization: localStorage.getItem("token") || "token"
-            }
-        })
-            .then(res => {
-                const pmsBuilded = res.data.users.map(user => {
-                    return {
-                        label: user.name,
-                        value: user.username
-                    }
-                })
-                setPms(pmsBuilded);
-            })
-            .catch(err => {
-                alert("Something went wrong!")
-            })
-        setLoading(false);
-    }
-
     const columns = [
         {
             title: "Project Code",
@@ -157,11 +105,6 @@ function ProjectManager() {
             title: "Rank",
             dataIndex: "rank",
             key: "rank"
-        },
-        {
-            title: "Category",
-            dataIndex: "category",
-            key: "category"
         },
         {
             title: "Project Lead",
@@ -181,11 +124,6 @@ function ProjectManager() {
             render: (text) => (text ? moment(text, "YYYY-MM-DD").format("DD/MM/YYYY") : null)
         },
         {
-            title: "Customer",
-            dataIndex: "customer",
-            key: "customer"
-        },
-        {
             title: "Status",
             dataIndex: "status",
             key: "status",
@@ -201,70 +139,25 @@ function ProjectManager() {
                 }
                 return <></>
             }
+        },
+        {
+            title: "Action",
+            key: "Action",
+            render: (_, { code }) => {
+                return (
+                    <Button type="primary" onClick={() => navigate(`/pm/project/edit/${code}`)} size="large"> Edit </Button>
+                )
+            }
         }
     ]
 
-    const items = [
-        {
-            key: 'sub0',
-            label: 'Home',
-            icon: <HomeOutlined />,
-            onClick: () => {
-                window.location.href = '/';
-            }
-        },
-        {
-            key: 'sub1',
-            label: 'Project Manager',
-            icon: <CopyOutlined />,
-            children: [
-                {
-                    key: 'create-a-project',
-                    label: 'Create a Project',
-                    onClick: () => {
-                        window.location.href = '/admin/project-manager';
-                    }
-                },
-            ],
-        },
-        {
-            key: 'sub2',
-            label: 'User Manager',
-            icon: <AppstoreOutlined />,
-            children: [
-                {
-                    key: 'create-a-user',
-                    label: 'Create a User',
-                    onClick: () => {
-                        window.location.href = '/admin/user-manager';
-                    }
-                },
-            ],
-        },
-        {
-            key: 'sub4',
-            label: 'Setting',
-            icon: <SettingOutlined />,
-            children: [
-                {
-                    key: 'log-out',
-                    label: 'Loh Out',
-                    onClick: () => {
-                        window.location.href = '/logout';
-                    }
-                },
-            ],
-        },
-    ];
-
     React.useEffect(() => {
         fetchProjects();
-        fetchPms();
     }, [])
 
     return (
         <Layout>
-            <div className="group-create-project">
+            <div className="group-info-project">
                 <div>
                     <SearchOutlined style={{ fontSize: '15px' }} />
                     <label className="title">SEARCH</label>
@@ -274,29 +167,17 @@ function ProjectManager() {
                     <Button type="primary" size="large" onClick={searchByKeyword}>Search</Button>
                 </div>
             </div>
-            <div className="group-create-project">
-                <div>
-                    <PlusCircleOutlined />
-                    <label className="title">CREATE A PROJECT</label>
-                </div>
-                <div className="create-project">
-                    <Input placeholder="Project Code" size="large" onChange={(e) => setProjectCode(e.target.value)} />
-                    <Select placeholder="Project Lead" size="large" style={{ width: "300px" }} options={pms} onChange={(pm_username) => setSelectedPm(pm_username)} />
-                    <Button type="primary" size="large" onClick={() => createProject()}>Create</Button>
-                </div>
-            </div>
-            <div className="group-create-project">
+            <div className="group-info-project">
                 <div>
                     <UnorderedListOutlined />
                     <label className="title">PROJECT LIST</label>
                 </div>
                 <div>
-                    <Table dataSource={projects} columns={columns} pagination loading={loading} />
+                    <Table dataSource={projects} columns={columns} pagination loading={loading}></Table>
                 </div>
             </div>
         </Layout>
     )
+
 }
-
-
-export default ProjectManager;
+export default ProjectInfo;

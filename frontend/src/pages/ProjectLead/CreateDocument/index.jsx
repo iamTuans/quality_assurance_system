@@ -6,33 +6,53 @@ import moment from 'moment';
 
 import "./index.css";
 
-import {
-    Button,
-    DatePicker,
-    Form,
-    Input,
-    Select,
-    Table,
-    Tag,
-    Menu,
-    Upload
-} from 'antd';
+import { Input, Button, DatePicker, Form, Upload, Select, Tag, message } from "antd";
 
 import {
-    HomeOutlined,
-    KeyOutlined,
-    FormOutlined,
-    SettingOutlined,
     PlusOutlined,
-    UnorderedListOutlined,
-    AppstoreAddOutlined,
 } from "@ant-design/icons";
+
+import Layout from "../../../components/Layout";
+
+const numberOptions = [
+    { value: '1', label: '0.1' },
+    { value: '2', label: '0.2' }
+];
+
+const componentOptions = [
+    { value: '1', label: 'Contract' },
+    { value: '2', label: 'Report' },
+    { value: '3', label: 'Analysis Document' },
+    { value: '4', label: 'UI/UX Design Document' },
+    { value: '5', label: 'Develop Document' },
+    { value: '6', label: 'Test Document' },
+    { value: '7', label: 'Review Document' },
+    { value: '10', label: 'Other' },
+];
+
+const categoryOptions = [
+    { value: '1', label: 'Open Project' },
+    { value: '2', label: 'Requirement' },
+    { value: '3', label: 'Design' },
+    { value: '4', label: 'Development' },
+    { value: '5', label: 'Testing' },
+    { value: '6', label: 'Deployment' },
+    { value: '7', label: 'Maintenence' },
+];
+
+const moduleOptions = [
+    { value: '1', label: 'PM' },
+    { value: '2', label: 'QA' },
+    { value: '3', label: 'BA' },
+    { value: '4', label: 'DEV' },
+    { value: '5', label: 'TEST' },
+];
 
 function CreateDocument() {
 
     const { projectID } = useParams();
     const [project, setProject] = React.useState({
-        key: null,
+        key: null,  
         code: null,
         name: null,
         leader: null,
@@ -58,84 +78,8 @@ function CreateDocument() {
         },
     };
 
-    const items = [
-        {
-            key: 'sub0',
-            label: 'Home',
-            icon: <HomeOutlined />,
-            onClick: () => {
-                window.location.href = '/pm/home';
-            }
-        },
-
-        {
-            key: 'sub2',
-            label: 'Create',
-            icon: <AppstoreAddOutlined />,
-            children: [
-                {
-                    key: 'create-task',
-                    label: 'Create Task',
-                },
-                {
-                    key: 'create-doc',
-                    label: 'Create Document',
-                    onClick: () => {
-                        window.location.href = '/create-document';
-                    }
-                },
-                {
-                    key: 'create-bug',
-                    label: 'Create Defect',
-                },
-            ],
-        },
-
-        {
-            key: 'sub3',
-            label: 'User Information',
-            icon: <FormOutlined />,
-            children: [
-                {
-                    key: 'view',
-                    label: 'View Information',
-                },
-                {
-                    key: 'change-info',
-                    label: 'Change Information',
-                    onClick: () => {
-                        window.location.href = '/pm/change-info';
-                    }
-                },
-            ],
-        },
-
-        {
-            key: 'sub4',
-            label: 'Setting',
-            icon: <SettingOutlined />,
-            children: [
-                {
-                    key: 'change-pass',
-                    label: 'Change Password',
-                },
-                {
-                    key: 'log-out',
-                    label: 'Log Out',
-                    onClick: () => {
-                        window.location.href = '/logout';
-                    },
-                },
-            ],
-        }
-    ];
-
     const [form] = Form.useForm();
     const variant = Form.useWatch('variant', form);
-
-    const onClick = (e) => {
-        console.log('click ', e);
-    };
 
     const normFile = (e) => {
         if (Array.isArray(e)) {
@@ -146,18 +90,10 @@ function CreateDocument() {
 
     return (
         loading ? <div>Loading...</div> :
-            <div className='group'>
-                <div className="group-column-change-info-project-left">
-                    <Menu
-                        onClick={onClick}
-                        style={{ width: 256 }}
-                        mode="inline"
-                        items={items}
-                    />
-                </div>
+            <Layout>
                 <div className="group-column-change-info-project-right">
                     <div className='title'>
-                        <label className="title">CREATE A PROJECT</label>
+                        <label className="title">CREATE A DOCUMENT</label>
                     </div>
                     <div className="group-change-info-project">
                         <Form
@@ -192,7 +128,7 @@ function CreateDocument() {
                                 name="version"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
-                                <Input />
+                                <Select options={numberOptions} />
                             </Form.Item>
 
                             <Form.Item
@@ -220,7 +156,7 @@ function CreateDocument() {
                                 name="components"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
-                                <Input />
+                                <Select options={componentOptions} />
                             </Form.Item>
 
                             <Form.Item
@@ -228,7 +164,7 @@ function CreateDocument() {
                                 name="category"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
-                                <Input />
+                                <Select options={categoryOptions} />
                             </Form.Item>
 
                             <Form.Item
@@ -236,14 +172,14 @@ function CreateDocument() {
                                 name="module"
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
-                                <Input />
+                                <Select options={moduleOptions}></Select>
                             </Form.Item>
 
-                            <Form.Item 
-                            label="Upload" 
-                            valuePropName="fileList" 
-                            getValueFromEvent={normFile}
-                            rules={[{ required: true, message: 'Please upload a file!' }]}
+                            <Form.Item
+                                label="Upload"
+                                valuePropName="fileList"
+                                getValueFromEvent={normFile}
+                                rules={[{ required: true, message: 'Please upload a file!' }]}
                             >
                                 <Upload action="/upload.do" listType="picture-card">
                                     <button
@@ -267,14 +203,14 @@ function CreateDocument() {
                             </Form.Item>
 
                             <Form.Item wrapperCol={{ offset: 6, span: 16 }}>
-                                <Button type="primary" onClick={() => window.location.href = `/pm/home`} htmlType="submit">
+                                <Button type="primary" onClick={() => window.location.href = `/pm`} htmlType="submit" loading={loading}>
                                     Submit
                                 </Button>
                             </Form.Item>
                         </Form>
                     </div>
                 </div>
-            </div>
+            </Layout>
     )
 }
 
