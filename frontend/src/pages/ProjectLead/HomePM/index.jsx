@@ -7,6 +7,10 @@ import "./index.css";
 
 import { Input, Button, Table, Tag, message } from "antd";
 
+import {
+    HistoryOutlined
+} from "@ant-design/icons";
+
 import Layout from "../../../components/Layout";
 import { useNavigate } from "react-router-dom";
 
@@ -20,42 +24,7 @@ function HomePM() {
 
     const navigate = useNavigate();
 
-    const searchByKeyword = async () => {
-        setLoading(true);
-        if (!projectKeyword) {
-            fetchProjects();
-        } else {
-            await axios.post(`${configs.API_URL}/general/search-project`, {
-                keyword: projectKeyword
-            }, {
-                headers: {
-                    Authorization: localStorage.getItem("token") || "token"
-                }
-            })
-                .then(res => {
-                    message.success(res.data.message);
-                    const buildedProjects = res.data.projects.map(project => {
-                        return {
-                            key: project._id,
-                            code: project.code,
-                            name: project.name || "",
-                            leader: project.leader.username || "",
-                            rank: project.rank || "",
-                            category: project.category || "",
-                            start_date: project.start_date || "",
-                            end_date: project.end_date || "",
-                            customer: project.customer || "",
-                            status: project.status || "undefined"
-                        }
-                    });
-                    setProjects(buildedProjects);
-                })
-                .catch(err => {
-                    alert("Something went wrong!")
-                })
-        }
-        setLoading(false);
-    }
+    const [user, setUser] = React.useState(null);
 
     const fetchProjects = async () => {
         setLoading(true);
@@ -87,93 +56,43 @@ function HomePM() {
         setLoading(false);
     }
 
-    const columns = [
-        {
-            title: "Project Code",
-            dataIndex: "code",
-            key: "code"
-        },
-        {
-            title: "Project Name",
-            dataIndex: "name",
-            key: "name"
-        },
-        {
-            title: "Rank",
-            dataIndex: "rank",
-            key: "rank"
-        },
-        {
-            title: "Project Lead",
-            dataIndex: "leader",
-            key: "leader"
-        },
-        {
-            title: "Start Date",
-            dataIndex: "start_date",
-            key: "start_date",
-            render: (text) => (text ? moment(text, "YYYY-MM-DD").format("DD/MM/YYYY") : null)
-        },
-        {
-            title: "End Date",
-            dataIndex: "end_date",
-            key: "end_date",
-            render: (text) => (text ? moment(text, "YYYY-MM-DD").format("DD/MM/YYYY") : null)
-        },
-        {
-            title: "Status",
-            dataIndex: "status",
-            key: "status",
-            render: (_, { status }) => {
-                if (status === "open") {
-                    return <Tag color="green">{status}</Tag>
-                }
-                if (status === "pending") {
-                    return <Tag color="orange">{status}</Tag>
-                }
-                if (status === "close") {
-                    return <Tag color="grey">{status}</Tag>
-                }
-                return <></>
-            }
-        },
-        {
-            title: "Action",
-            key: "Action",
-            render: (_, { code }) => {
-                return (
-                    <Button type="primary" onClick={() => navigate(`/pm/project/edit/${code}`)} size="large"> View </Button>
-                )
-            }
-        }
-    ]
-
     React.useEffect(() => {
         fetchProjects();
     }, [])
 
+    React.useEffect(() => {
+        const user = JSON.parse(localStorage.getItem("auth"));
+        setUser(user);
+    });
+
     return (
         <Layout>
             <div className="group-info-project">
+                <div style={{ 
+                    fontWeight: 'bold',
+                    fontSize: '20px',
+                    display: 'flex',
+                    gap: '10px'
+                    }}>
+                    Hello,  
+                    <div>
+                        {user?.full_name} !
+                    </div>
+                </div>
 
-                aaa
-                {/* <div>
-                    <SearchOutlined style={{ fontSize: '15px' }} />
-                    <label className="title">SEARCH</label>
-                </div>
-                <div className="search-project">
-                    <Input placeholder="Enter Key Word" size="large" onChange={(e) => setProjectKeyword(e.target.value)} />
-                    <Button type="primary" size="large" onClick={searchByKeyword}>Search</Button>
-                </div>
+                <label>
+                    Welcome to Project Management System. Let's get started managing your site.
+                </label>
             </div>
+
             <div className="group-info-project">
                 <div>
-                    <UnorderedListOutlined />
-                    <label className="title">PROJECT LIST</label>
+                    <HistoryOutlined />
+                    <label className="title">HISTORY</label>
                 </div>
                 <div>
-                    <Table dataSource={projects} columns={columns} pagination loading={loading}></Table>
-                </div> */}
+                    bbbb
+                </div>
             </div>
         </Layout>
     )

@@ -7,7 +7,8 @@ const userSchema = new Schema({
     },
     full_name: {
         type: String,
-        default: null 
+        default: null,
+        required: true
     },
     gender: {
         type: String,
@@ -39,14 +40,6 @@ const userSchema = new Schema({
         enum: [
             'admin',
             'pm',
-            'qa',
-            'dev',
-            'ba',
-            'uiux',
-            'tester',
-            'cm',
-            'pd',
-            'po',
             'user' //role trong hệ thống
         ],
         default: 'user',

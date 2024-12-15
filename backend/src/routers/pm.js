@@ -20,7 +20,13 @@ router.post('/add-user-to-project', verifyToken, async (req, res) => {
             });
         }
 
-        const { username, project_code, role } = req.body;
+        const {
+            username,
+            project_code,
+            role,
+            start_date,
+            end_date
+        } = req.body;
 
         const foundUser = await userModel
             .findOne({ username });
@@ -40,17 +46,26 @@ router.post('/add-user-to-project', verifyToken, async (req, res) => {
 
         const foundProjectRole = await projectRoleModel
             .findOne({ user_id: newMongoId(foundUser._id), project_id: newMongoId(foundProject._id) });
-        if (foundProjectRole) {
+        if (foundProjectRole && moment(foundProjectRole.end_date).isBefore(moment())) {
             return res.status(400).send({
                 message: 'User already in project!'
             });
         }
 
-        const newProjectRole = new projectRoleModel({
-            user_id: newMongoId(foundUser._id),
-            project_id: newMongoId(foundProject._id),
-            role,
-        });
+        if (foundProject.leader.toString() === foundUser._id.toString()) {
+            return res.status(400).send({
+                message: 'User already in project!'
+            });
+        }
+
+        const parsedStartDate = moment.utc(start_date, 'DD-MM-YYYY').toDate();
+        const parsedEndDate = moment.utc(end_date, 'DD-MM-YYYY').toDate();
+
+        if (end_date <= start_date) {
+            return res.status(400).send({
+                message: 'Invalid date!'
+            });
+        }
 
         const valid_project_role = [
             ROLE.DEV, 
@@ -58,7 +73,8 @@ router.post('/add-user-to-project', verifyToken, async (req, res) => {
             ROLE.BA, 
             ROLE.QA, 
             ROLE.UIUX, 
-            ROLE.PD
+            ROLE.PD,
+            ROLE.CM
         ];
         if (!valid_project_role.includes(role)) {
             return res.status(400).send({
@@ -66,7 +82,20 @@ router.post('/add-user-to-project', verifyToken, async (req, res) => {
             });
         }
 
-        await newProjectRole.save();
+        await projectRoleModel.findOneAndUpdate({
+            user_id: newMongoId(foundUser._id),
+            project_id: newMongoId(foundProject._id),
+        }, {
+            user_id: newMongoId(foundUser._id),
+            project_id: newMongoId(foundProject._id),
+            role,
+            start_date: parsedStartDate,
+            end_date: parsedEndDate
+        }, {
+            upsert: true,
+            new: true
+        });
+
         return res.status(200).send({
             message: 'User added to project!'
         });

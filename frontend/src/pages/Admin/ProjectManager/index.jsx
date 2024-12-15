@@ -42,7 +42,7 @@ function ProjectManager() {
                 }
             })
                 .then(res => {
-                    message.success(res.data.message);
+                    message.success(`Match ${res.data.users.length} result(s)`);
                     const buildedProjects = res.data.projects.map(project => {
                         return {
                             key: project._id,
@@ -60,7 +60,7 @@ function ProjectManager() {
                     setProjects(buildedProjects);
                 })
                 .catch(err => {
-                    alert("Something went wrong!")
+                    message.error("Something went wrong!");
                 })
         }
         setLoading(false);
@@ -81,7 +81,7 @@ function ProjectManager() {
             }
         })
             .then(res => {
-                alert("Project created successfully!");
+                message.success(res.data.message);
                 fetchProjects();
             })
             .catch(err => {

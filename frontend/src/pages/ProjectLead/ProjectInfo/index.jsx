@@ -145,7 +145,7 @@ function ProjectInfo() {
             key: "Action",
             render: (_, { code }) => {
                 return (
-                    <Button type="primary" onClick={() => navigate(`/pm/project/edit/${code}`)} size="large"> Edit </Button>
+                    <Button type="primary" onClick={() => navigate(`/pm/project/view/${code}`)} size="large">View</Button>
                 )
             }
         }

@@ -13,9 +13,17 @@ const projectRoleSchema = new Schema({
     },
     role: {
         type: String,
-        enum: ['dev', 'tester', 'ba', 'qa', 'uiux', 'pd'],
+        enum: ['dev', 'tester', 'ba', 'qa', 'uiux', 'pd', 'cm'],
         required: true,
-    }
+    },
+    start_date: {
+        type: Date,
+        required: true
+    },
+    end_date: {
+        type: Date,
+        required: true
+    },
 }, {
     timestamps: true
 });

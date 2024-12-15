@@ -16,9 +16,6 @@ import HomeAdmin from './pages/Admin/HomeAdmin';
 
 //ProjectLead Function
 import HomePM from './pages/ProjectLead/HomePM';
-import PM_EditProject from './pages/ProjectLead/EditProject'
-import PM_ChangeInfo from './pages/Profile'
-import CreateDocument from './pages/ProjectLead/CreateDocument';
 import ProjectInfo from './pages/ProjectLead/ProjectInfo'
 import ViewProject from './pages/ProjectLead/ViewProject';
 
@@ -86,28 +83,9 @@ function App() {
           <PrivateRouter enabled={['pm']}>
             <ProjectInfo />
           </PrivateRouter>
-        } />    
-
-        <Route path="/pm/project/edit/:projectID" element={
-          <PrivateRouter enabled={['pm']}>
-            <PM_EditProject />
-          </PrivateRouter>
         } />
 
-        <Route path="/pm/change-info" element={
-          <PrivateRouter enabled={['pm']}>
-            <PM_ChangeInfo />
-          </PrivateRouter>
-        } />
-
-
-        <Route path="/create-document" element={
-          <PrivateRouter enabled={['pm', 'ba']}>
-            <CreateDocument />
-          </PrivateRouter>
-        } />
-
-        <Route path="/view-projects" element={
+        <Route path="/pm/project/view/:projectID" element={
           <PrivateRouter enabled={['pm']}>
             <ViewProject />
           </PrivateRouter>

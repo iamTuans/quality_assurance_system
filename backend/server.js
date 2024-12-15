@@ -8,6 +8,9 @@ const multer = require('multer');
 const { verifyToken } = require('./src/utils/utils');
 const ROLE = require('./src/constants/ROLE');
 const projectModel = require('./src/models/project.model');
+const projectRoleModel = require('./src/models/projectRole.model');
+const fs = require('fs');
+const moment = require('moment');
 
 //Import routers
 const routers = require('./src/routers/routers');
@@ -58,52 +61,85 @@ const storage = multer.diskStorage({
     },
 });
 
-const upload = multer({ 
+const upload = multer({
     storage,
     limits: {
         fileSize: 10 * 1024 * 1024 // 10MB
     }
 });
 // Upload Router
-app.post('/upload', upload.single('file'), verifyToken, async (req, res) => {
+app.post('/api/upload', verifyToken, upload.single('file'), async (req, res) => {
+    try {
+        const auth = req.auth;
+        if (auth.role == ROLE.UNAUTHORIZED) {
+            return res.status(401).send({
+                message: 'Unauthorized!'
+            });
+        }
 
-    const auth = req.auth;
-    if (auth.role == ROLE.UNAUTHORIZED) {
-        return res.status(401).send({
-            message: 'Unauthorized!'
+        const {
+            project_code,
+            name,
+            version,
+            create_date,
+            description,
+            component,
+            category,
+            module
+        } = req.body;
+
+        const foundProject = await projectModel
+            .findOne({ code: project_code });
+        if (!foundProject) {
+            throw new Error('Project not found!');
+        }
+
+        const projectRole = await projectRoleModel.findOne({
+            user_id: auth.id, project_id: foundProject._id
         });
-    }
+        
+        if(!(projectRole || foundProject.leader == auth.id || auth.role == ROLE.ADMIN)) {
+            return res.status(403).send({
+                message: 'Forbidden!'
+            });
+        }
 
-    const {
-        file_name,
-        project_code
-    } = req.body;
-
-    const foundProject = await projectModel
-        .findOne({ code: project_code });
-    if(!foundProject) {
-        return res.status(404).send({
-            message: 'Project not found!'
+        let file_type = 'documents';
+        if (req.file.mimetype.startsWith('image/')) {
+            file_type = 'images';
+        }
+        const server_file_path = `/assets/${file_type}/${req.file.filename}`;
+        const newFile = new fileModel({
+            project: foundProject._id,
+            name,
+            version,
+            create_date: moment.utc(create_date, 'DD-MM-YYYY').toDate(),
+            description,
+            component,
+            category,
+            module,
+            creator: auth.id,
+            server_file_path
         });
-    }
+        await newFile.save();
 
-    let file_type = 'documents';
-    if(req.file.mimetype.startsWith('image/')) {
-        file_type = 'images';
+        return res.status(200).send({
+            message: 'File(s) uploaded successfully',
+            file: req.file
+        });
+    } catch (error) {
+        if (req.file) {
+            const filePath = path.join(__dirname, `uploads/${req.file.mimetype.startsWith('image/') ? 'images':'documents'}`, req.file.filename);
+            fs.unlink(filePath, (err) => {
+                if (err) {
+                    console.error('Error deleting file:', err);
+                } else {
+                    console.log('File deleted successfully');
+                }
+            });
+        }
+        return res.status(500).send({ message: 'Error uploading file', error: error.message });
     }
-    const server_file_path = `/assets/${file_type}/${req.file.filename}`;
-    const newFile = new fileModel({
-        author: auth.id,
-        name: file_name,
-        project: foundProject._id,
-        link: server_file_path
-    });
-    await newFile.save();
-
-    res.status(200).send({
-        message: 'File(s) uploaded successfully',
-        file: req.file
-    });
 });
 
 app.use('/api', routers);

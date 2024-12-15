@@ -40,7 +40,7 @@ router.post('/add-user', verifyToken, async (req, res) => { //verify token neu d
     });
 });
 
-router.post('/add-role', verifyToken, async (req, res) => {
+router.post('/modify-role', verifyToken, async (req, res) => {
     try {
         const auth = req.auth;
         if (auth?.role != ROLE.ADMIN) {
@@ -58,11 +58,22 @@ router.post('/add-role', verifyToken, async (req, res) => {
             });
         }
 
+        if(foundUser.role == ROLE.PM) {
+            // Check if there is any project that this user is leading
+            const foundProject = await projectModel
+                .findOne({ leader: newMongoId(foundUser._id) });
+            if (foundProject) {
+                return res.status(400).send({
+                    message: 'This user is leading a project!'
+                });
+            }
+        }
+
         foundUser.role = role;
         await foundUser.save();
 
         return res.status(200).send({
-            message: 'Role added!',
+            message: 'Role modified!',
             user: {
                 username: foundUser.username,
                 role: foundUser.role
@@ -170,9 +181,14 @@ router.get('/get-users', verifyToken, async (req, res) => {
 
         let users;
         if (role === null) {
-            users = await userModel.find().select('-password');
+            users = await userModel.find({ 
+                _id: { $ne: auth.id } 
+            }).select('-password');
         } else {
-            users = await userModel.find({ role }).select('-password');
+            users = await userModel.find({
+                _id: { $ne: auth.id },
+                role,
+            }).select('-password');
         }
         return res.status(200).send({
             users

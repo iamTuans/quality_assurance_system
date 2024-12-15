@@ -180,12 +180,10 @@ const Layout = ({ children }) => {
     const pm_menu_items = [
         { name: 'Home', icon: FiHome, path: '/pm' },
         { name: 'Projects', icon: FiStar, path: '/pm/projects' },
-        { name: 'Create Document', icon: FiStar, path: '/create-document' },
     ];
 
     const user_menu_items = [
         { name: 'Home', icon: FiHome, path: '/user' },
-        { name: 'Create Document', icon: FiStar, path: '/create-document' },
     ];
 
     let menu_items = [];

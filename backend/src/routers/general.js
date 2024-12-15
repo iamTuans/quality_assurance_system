@@ -8,7 +8,43 @@ const { verifyToken, newMongoId } = require('../utils/utils');
 // Importing models
 const projectModel = require('../models/project.model');
 const userModel = require('../models/user.model');
-// const projectRoleModel = require('../models/projectRole.model');
+const projectRoleModel = require('../models/projectRole.model');
+const fileModel = require('../models/file.model');
+
+router.get('/get-resources', verifyToken, async (req, res) => {
+    try {
+
+        const auth = req.auth;
+        if(auth.role == ROLE.UNAUTHORIZED) {
+            return res.status(401).send({
+                message: 'Unauthorized!'
+            });
+        }
+
+        const { project_code } = req.query;
+        const foundProject = await projectModel.findOne({ code: project_code });
+        if (!foundProject) {
+            return res.status(400).send({
+                message: 'Project not found!'
+            });
+        }
+
+        const resources = await fileModel
+            .find({ project: foundProject._id })
+            .populate('creator', 'username')
+            .lean();
+
+        return res.status(200).send({
+            message: 'Get resources successful!',
+            resources: resources
+        });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send({
+            message: 'Internal server error!'
+        });
+    }
+});
 
 router.get('/get-project-info', verifyToken, async (req, res) => {
     try {
@@ -204,6 +240,52 @@ router.post('/change-info', verifyToken, async (req, res) => {
 
     } catch (error) {
         console.log(error);
+        return res.status(500).send({
+            message: 'Internal server error!'
+        });
+    }
+});
+
+router.get('/get-users-in-project', verifyToken, async (req, res) => {
+    try {
+        const auth = req.auth;
+        if(auth.role == ROLE.UNAUTHORIZED) {
+            return res.status(401).send({
+                message: 'Unauthorized!'
+            });
+        }
+
+        const { project_code } = req.query;
+
+        const foundProject = await projectModel.findOne({ code: project_code });
+        if (!foundProject) {
+            return res.status(400).send({
+                message: 'Project not found!'
+            });
+        }
+
+        const foundProjectRole = await projectRoleModel
+            .findOne({ user_id: newMongoId(auth.id), project_id: foundProject._id });
+
+        const userInProject = (foundProject.leader == auth.id || foundProjectRole || auth.role == ROLE.ADMIN);
+        if (!userInProject) {
+            return res.status(401).send({
+                message: 'Unauthorized!'
+            });
+        }
+        
+        const users = await projectRoleModel
+            .find({ project_id: foundProject._id })
+            .populate('user_id', 'username full_name')
+            .lean();
+
+        return res.status(200).send({
+            message: 'Get users in project successful!',
+            users: users
+        })
+
+    } catch (err) {
+        console.log(err);
         return res.status(500).send({
             message: 'Internal server error!'
         });

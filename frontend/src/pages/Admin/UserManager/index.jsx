@@ -4,7 +4,7 @@ import axios from "axios";
 import configs from "../../../.configs";
 import moment from "moment";
 
-import { Input, Button, Table, Tag, message } from "antd";
+import { Input, Button, Table, Tag, Select, message } from "antd";
 import {
     SearchOutlined,
     UnorderedListOutlined,
@@ -12,6 +12,12 @@ import {
 } from '@ant-design/icons';
 
 import Layout from "../../../components/Layout";
+
+const roles = [
+    // { label: 'Admin', value: 'admin' },
+    { label: 'PM', value: 'pm' },
+    { label: 'User', value: 'user' }
+]
 
 function UserManager() {
 
@@ -142,8 +148,38 @@ function UserManager() {
             render: date => {
                 return moment(date).format("DD-MM-YYYY")
             }
+        },
+        {
+            title: 'Action',
+            dataIndex: 'role',
+            key: 'action',
+            render: (role, user) => {
+                return <Select
+                    options={roles}
+                    style={{ width: "100px" }}
+                    defaultValue={role}
+                    onChange={(newRole) => changeRole(newRole, user.username)}
+                />
+            }
         }
     ]
+
+    const changeRole = async (newRole, username) => {
+        await axios.post(`${configs.API_URL}/admin/modify-role`, {
+            username, role: newRole
+        }, {
+            headers: {
+                Authorization: localStorage.getItem("token") || "token"
+            }
+        })
+        .then(res => {
+            message.success(res.data.message);
+            fetchUsers();
+        })
+        .catch(err => {
+            message.error(err.response.data.message);
+        })
+    }
 
     React.useEffect(() => {
         fetchUsers();

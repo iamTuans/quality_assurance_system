@@ -1,8 +1,8 @@
 const RANK = ['A', 'B', 'C', 'D'];
 
-const CATEGORY = ['SW', 'HW'];
+const CATEGORY = ['Software', 'Hardware'];
 
-const STATUS = ['open', 'pending', 'close'];
+const STATUS = ['Open', 'Pending', 'Close'];
 
 module.exports = {
     RANK,

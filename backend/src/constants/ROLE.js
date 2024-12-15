@@ -7,6 +7,7 @@ const ROLE = {
     BA: 'ba',
     UIUX: 'uiux',
     PD: 'pd',
+    CM: 'cm',
     UNAUTHORIZED: 'unauthorized'
 }
 
