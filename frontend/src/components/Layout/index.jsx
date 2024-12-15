@@ -30,6 +30,8 @@ import {
     FiChevronDown,
 } from 'react-icons/fi'
 
+import React from 'react'
+import { Modal, Form, Input, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
 const APP_NAME = 'PMS'
@@ -97,9 +99,65 @@ const NavItem = ({ icon, children, ...rest }) => {
 
 const MobileNav = ({ onOpen, auth, ...rest }) => {
     const navigate = useNavigate();
+    const [visible, setVisible] = React.useState(false);
+    const [form] = Form.useForm();
 
     return (
-        <Flex
+        <>
+        <Modal
+            title="Change Password"
+            open={visible}
+            onOk={() => {
+                form
+                    .validateFields()
+                    .then((values) => {
+                        if(values.new_password.length < 8) {
+                            message.error('Password must be at least 6 characters');
+                            return;
+                        }
+                        if(values.new_password !== values.confirm_password) {
+                            message.error('Passwords do not match');
+                            return;
+                        }
+                        /// TODO: Change Password
+                        form.resetFields();
+                        setVisible(false);
+                    })
+                    .catch((info) => {
+                        console.log('Validate Failed:', info);
+                    });
+            }}
+            onCancel={() => setVisible(false)}
+        >
+            <Form
+                form={form}
+            >
+                <Form.Item
+                    label="Old Password"
+                    name="old_password"
+                    rules={[{ required: true, message: 'Please input your old password!' }]}
+                >
+                    <Input.Password placeholder="Old Password" />
+                </Form.Item>
+
+                <Form.Item
+                    label="New Password"
+                    name="new_password"
+                    rules={[{ required: true, message: 'Please input your new password!' }]}
+                >
+                    <Input.Password placeholder="New Password" />
+                </Form.Item>
+
+                <Form.Item
+                    label="Confirm Password"
+                    name="confirm_password"
+                    rules={[{ required: true, message: 'Please input your new password!' }]}
+                >
+                    <Input.Password placeholder="Confirm Password" />
+                </Form.Item>
+            </Form>
+        </Modal>
+                <Flex
             ml={{ base: 0, md: 60 }}
             px={{ base: 4, md: 4 }}
             height="20"
@@ -156,7 +214,7 @@ const MobileNav = ({ onOpen, auth, ...rest }) => {
                             bg={useColorModeValue('white', 'gray.900')}
                             borderColor={useColorModeValue('gray.200', 'gray.700')}>
                             <MenuItem onClick={() => navigate('/profile')}>Profile</MenuItem>
-                            <MenuItem onClick={() => navigate('/setting')}>Settings</MenuItem>
+                            <MenuItem onClick={() => setVisible(true)}>Change Password</MenuItem>
                             <MenuDivider />
                             <MenuItem onClick={() => navigate('/logout')}>Log out</MenuItem>
                         </MenuList>
@@ -164,6 +222,7 @@ const MobileNav = ({ onOpen, auth, ...rest }) => {
                 </Flex>
             </HStack>
         </Flex>
+        </>
     )
 }
 
@@ -184,12 +243,13 @@ const Layout = ({ children }) => {
 
     const user_menu_items = [
         { name: 'Home', icon: FiHome, path: '/user' },
+        { name: 'Projects', icon: FiStar, path: '/user/projects' },
     ];
 
     let menu_items = [];
     if(auth?.role === 'admin') menu_items = admin_menu_items;
     if(auth?.role === 'pm') menu_items = pm_menu_items;
-    if(auth?.role == 'ba') menu_items = user_menu_items;
+    if(auth?.role == 'user') menu_items = user_menu_items;
 
     return (
         <Box minH="100vh" bg={useColorModeValue('gray.100', 'gray.900')}>

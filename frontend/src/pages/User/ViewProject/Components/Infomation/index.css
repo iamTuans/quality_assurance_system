@@ -1,0 +1,59 @@
+.group-change-info-project {
+    display: flex;
+    gap: 5px;
+}
+
+.group-column-change-info-project-left {
+    padding-top: 10px;
+    border: 1px solid #dcdcdc;
+}
+
+.group-column-change-info-project-right {
+    width: 100%;
+    border: 1px solid #dcdcdc;
+    background-color: white;
+}
+
+
+.group-change-info-project {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    margin: 10px;
+}
+
+.title {
+    margin-top: 20px;
+}
+
+.information-form {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin: 16px;
+}
+
+.form-item {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+}
+.form-item-label {
+    width: 100px;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 10px;
+    padding-right: 10px;
+}
+
+.form-item-value {
+    /* border-bottom: 1px solid black; */
+    padding-top: 10px;
+}
+
+.form-item-edit {
+    width: 300px;
+    padding-top: 10px;
+}
+

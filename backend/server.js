@@ -15,6 +15,7 @@ const moment = require('moment');
 //Import routers
 const routers = require('./src/routers/routers');
 const fileModel = require('./src/models/file.model');
+const actionModel = require('./src/models/action.model');
 
 dotenv.config();
 
@@ -122,6 +123,13 @@ app.post('/api/upload', verifyToken, upload.single('file'), async (req, res) => 
             server_file_path
         });
         await newFile.save();
+
+        const newAction = new actionModel({
+            action_user: auth.id,
+            action_project: foundProject._id,
+            action_name: `${auth.username} added a resource ${name} to project ${foundProject.code}`,
+        });
+        await newAction.save();
 
         return res.status(200).send({
             message: 'File(s) uploaded successfully',

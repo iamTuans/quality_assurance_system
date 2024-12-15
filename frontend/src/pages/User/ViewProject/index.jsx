@@ -19,7 +19,7 @@ import Layout from "../../../components/Layout";
 import ViewProject_InformationComponent from './Components/Infomation';
 import ViewProject_MembersComponent from './Components/Members';
 import ViewProject_ResourcesComponent from './Components/Resources';
-import ViewProject_SummaryComponent from "./Components/Summary";
+import ViewProject_SummaryComponent from './Components/Summary';
 
 function Tasks() {
 

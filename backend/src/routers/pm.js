@@ -10,6 +10,7 @@ const { verifyToken, newMongoId } = require('../utils/utils');
 const userModel = require('../models/user.model');
 const projectModel = require('../models/project.model');
 const projectRoleModel = require('../models/projectRole.model');
+const actionModel = require('../models/action.model');
 
 router.post('/add-user-to-project', verifyToken, async (req, res) => {
     try {
@@ -46,7 +47,7 @@ router.post('/add-user-to-project', verifyToken, async (req, res) => {
 
         const foundProjectRole = await projectRoleModel
             .findOne({ user_id: newMongoId(foundUser._id), project_id: newMongoId(foundProject._id) });
-        if (foundProjectRole && moment(foundProjectRole.end_date).isBefore(moment())) {
+        if (foundProjectRole && moment(foundProjectRole.end_date).isAfter(moment())) {
             return res.status(400).send({
                 message: 'User already in project!'
             });
@@ -95,6 +96,14 @@ router.post('/add-user-to-project', verifyToken, async (req, res) => {
             upsert: true,
             new: true
         });
+
+
+        const newAction = new actionModel({
+            action_user: newMongoId(auth.id),
+            action_project: newMongoId(foundProject._id),
+            action_name: `${auth.username} added ${foundUser.username} to project ${foundProject.name}`
+        });
+        await newAction.save();
 
         return res.status(200).send({
             message: 'User added to project!'
@@ -175,35 +184,19 @@ router.post('/change-project-info', verifyToken, async (req, res) => {
             }
         );
 
+        const newAction = new actionModel({
+            action_user: newMongoId(auth.id),
+            action_project: newMongoId(foundProject._id),
+            action_name: `Project ${foundProject.code} info changed by ${auth.username}`
+        });
+        await newAction.save();
+
         return res.status(200).send({
             message: 'Project info changed!'
         });
 
     } catch (error) {
         console.log(error);
-        return res.status(500).send({
-            message: 'Internal server error!'
-        });
-    }
-});
-
-router.get('/get-projects', verifyToken, async (req, res) => {
-    try {
-        const auth = req.auth;
-        if (auth?.role != ROLE.PM) { //kiemtra role 
-            return res.status(401).send({
-                message: 'Unauthorized!'
-            });
-        }
-
-        const projects = await projectModel
-            .find({ leader: newMongoId(auth.id)})
-            .populate('creator', 'username')
-            .populate('leader', 'username');
-        return res.status(200).send({
-            projects
-        });
-    } catch (err) {
         return res.status(500).send({
             message: 'Internal server error!'
         });

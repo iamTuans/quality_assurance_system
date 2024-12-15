@@ -14,7 +14,7 @@ function Home() {
         if (auth.role === 'pm') {
             navigate('/pm');
         }
-        if (auth.role === 'ba') {
+        if (auth.role === 'user') {
             navigate('/user');
         }
     }, [JSON.parse(localStorage.getItem('auth'))]);

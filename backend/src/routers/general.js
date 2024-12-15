@@ -10,6 +10,88 @@ const projectModel = require('../models/project.model');
 const userModel = require('../models/user.model');
 const projectRoleModel = require('../models/projectRole.model');
 const fileModel = require('../models/file.model');
+const actionModel = require('../models/action.model');
+
+router.get('/get-actions', verifyToken, async (req, res) => {
+    try {
+        const auth = req.auth;
+        if(auth.role == ROLE.UNAUTHORIZED) {
+            return res.status(401).send({
+                message: 'Unauthorized!'
+            });
+        }
+
+        if(auth.role == ROLE.ADMIN) {
+            const actions = await actionModel
+                .find()
+                .populate('action_user', 'username')
+                .lean();
+            return res.status(200).send({
+                message: 'Get actions successful!',
+                actions: actions
+            });
+        }
+
+        const { project_code } = req.query;
+        if(project_code) {
+            const foundProject = await projectModel.findOne({ code: project_code });
+            if (!foundProject) {
+                return res.status(400).send({
+                    message: 'Project not found!'
+                });
+            }
+            const foundProjectRole = await projectRoleModel
+                .findOne({ user_id: newMongoId(auth.id), project_id: foundProject._id });
+            const userInProject = (foundProject.leader == auth.id || foundProjectRole || auth.role == ROLE.ADMIN);
+            if (!userInProject) {
+                return res.status(401).send({
+                    message: 'Unauthorized!'
+                });
+            }
+
+            const actions = await actionModel
+                .find({ action_project: foundProject._id })
+                .populate('action_user', 'username')
+                .lean();
+            return res.status(200).send({
+                message: 'Get actions successful!',
+                actions: actions
+            })
+        } else {
+            const projectsIsLeader = await projectModel
+                .find({ leader: newMongoId(auth.id)})
+                .populate('creator', 'username')
+                .populate('leader', 'username');
+        
+            const projectIsMember = await projectRoleModel
+                .find({ user_id: newMongoId(auth.id) })
+                .populate({
+                path: 'project_id',
+                select: 'code name creator leader rank category start_date end_date status',
+                populate: [
+                    { path: 'leader', select: 'username' },
+                    { path: 'creator', select: 'username' }
+                ]
+                })
+                .populate('user_id', 'username');
+
+            const projects = [...projectsIsLeader.map(project => project._id), ...projectIsMember.map(project => project?.project_id?._id)];
+            const actions = await actionModel
+                .find({ action_project: { $in: projects } })
+                .populate('action_user', 'username')
+                .lean();
+            return res.status(200).send({
+                message: 'Get actions successful!',
+                actions: actions
+            })
+        }
+    } catch (error) {
+        return res.status(500).send({
+            message: 'Internal server error!'
+        });
+    }
+
+});
 
 router.get('/get-resources', verifyToken, async (req, res) => {
     try {
@@ -66,55 +148,10 @@ router.get('/get-project-info', verifyToken, async (req, res) => {
                 message: 'Project not found!'
             });
         }
-
-        if (auth.role == ROLE.ADMIN) {
-            return res.status(200).send({
-                message: 'Get project info successful!',
-                project: foundProject
-            })
-        }
-
-        if(auth.role == ROLE.PM) {
-            if (foundProject.leader._id != auth.id) {
-                return res.status(401).send({
-                    message: 'Unauthorized!'
-                });
-            }
-            return res.status(200).send({
-                message: 'Get project info successful!',
-                project: foundProject
-            });
-        }
-
-        const foundProjectRole = projectRoleModel
-            .findOne({ user_id: newMongoId(auth.id), project_id: foundProject._id })
-            .lean();
         
-        if (!foundProjectRole) {
-            return res.status(401).send({
-                message: 'Unauthorized!'
-            });
-        }
-
-        if (auth.role == ROLE.BA) {
-            return res.status(200).send({
-                message: 'Get project info successful!',
-                project: {
-                    code: foundProject.code,
-                    name: foundProject.name,
-                    rank: foundProject.rank,
-                    category: foundProject.category,
-                    start_date: foundProject.start_date,
-                    end_date: foundProject.end_date
-                }
-            });
-        }
-
         return res.status(200).send({
             message: 'Get project info successful!',
-            project: {
-                name: foundProject.name,
-            }
+            project: foundProject
         })
         
     } catch (error) {
@@ -286,6 +323,42 @@ router.get('/get-users-in-project', verifyToken, async (req, res) => {
 
     } catch (err) {
         console.log(err);
+        return res.status(500).send({
+            message: 'Internal server error!'
+        });
+    }
+});
+
+router.get('/get-projects', verifyToken, async (req, res) => {
+    try {
+        const auth = req.auth;
+        if(auth.role == ROLE.UNAUTHORIZED) {
+            return res.status(401).send({
+                message: 'Unauthorized!'
+            });
+        }
+
+        const projectsIsLeader = await projectModel
+            .find({ leader: newMongoId(auth.id)})
+            .populate('creator', 'username')
+            .populate('leader', 'username');
+        
+        const projectIsMember = await projectRoleModel
+            .find({ user_id: newMongoId(auth.id) })
+            .populate({
+              path: 'project_id',
+              select: 'code name creator leader rank category start_date end_date status',
+              populate: [
+                { path: 'leader', select: 'username' },
+                { path: 'creator', select: 'username' }
+              ]
+            })
+            .populate('user_id', 'username');
+        const projects = [...projectsIsLeader, ...projectIsMember.map(project => project.project_id)];
+        return res.status(200).send({
+            projects
+        });
+    } catch (err) {
         return res.status(500).send({
             message: 'Internal server error!'
         });

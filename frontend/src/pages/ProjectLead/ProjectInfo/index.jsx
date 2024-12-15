@@ -62,7 +62,7 @@ function ProjectInfo() {
 
     const fetchProjects = async () => {
         setLoading(true);
-        await axios.get(`${configs.API_URL}/pm/get-projects`, {
+        await axios.get(`${configs.API_URL}/general/get-projects`, {
             headers: {
                 Authorization: localStorage.getItem("token") || "token"
             }
@@ -128,13 +128,13 @@ function ProjectInfo() {
             dataIndex: "status",
             key: "status",
             render: (_, { status }) => {
-                if (status === "open") {
+                if (status === "Open") {
                     return <Tag color="green">{status}</Tag>
                 }
-                if (status === "pending") {
+                if (status === "Pending") {
                     return <Tag color="orange">{status}</Tag>
                 }
-                if (status === "close") {
+                if (status === "Close") {
                     return <Tag color="grey">{status}</Tag>
                 }
                 return <></>
@@ -145,7 +145,7 @@ function ProjectInfo() {
             key: "Action",
             render: (_, { code }) => {
                 return (
-                    <Button type="primary" onClick={() => navigate(`/pm/project/view/${code}`)} size="large">View</Button>
+                    <Button type="primary" onClick={() => navigate(`/${JSON.parse(localStorage.getItem('auth'))?.role}/project/view/${code}`)} size="large">View</Button>
                 )
             }
         }

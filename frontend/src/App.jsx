@@ -22,6 +22,7 @@ import ViewProject from './pages/ProjectLead/ViewProject';
 
 //User Function
 import HomeUser from './pages/User/HomeUser';
+import { default as ViewProjectByUser } from './pages/User/ViewProject';
 
 
 import PrivateRouter from "./middlewares/PrivateRouter";
@@ -34,13 +35,13 @@ function App() {
       <Routes>
 
         <Route path="/" element={
-          <PrivateRouter enabled={['admin', 'pm', 'ba']}>
+          <PrivateRouter enabled={['admin', 'pm', 'user']}>
             <Home />
           </PrivateRouter>
         } />
 
         <Route path="/profile" element={
-          <PrivateRouter enabled={['admin', 'pm']}>
+          <PrivateRouter enabled={['admin', 'pm', 'user']}>
             <Profile />
           </PrivateRouter>
         } />
@@ -92,14 +93,20 @@ function App() {
         } />
 
         <Route path="/user" element={
-          <PrivateRouter enabled={['ba']}>
+          <PrivateRouter enabled={['user']}>
             <HomeUser />
           </PrivateRouter>
         } />
 
         <Route path="/user/projects" element={
-          <PrivateRouter enabled={['ba']}>
+          <PrivateRouter enabled={['user']}>
             <ProjectInfo />
+          </PrivateRouter>
+        } />
+
+        <Route path="/user/project/view/:projectID" element={
+          <PrivateRouter enabled={['user']}>
+            <ViewProjectByUser />
           </PrivateRouter>
         } />
 

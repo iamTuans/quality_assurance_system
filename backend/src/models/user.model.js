@@ -8,7 +8,6 @@ const userSchema = new Schema({
     full_name: {
         type: String,
         default: null,
-        required: true
     },
     gender: {
         type: String,
