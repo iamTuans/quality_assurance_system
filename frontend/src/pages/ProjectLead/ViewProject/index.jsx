@@ -20,6 +20,7 @@ import ViewProject_InformationComponent from './Components/Infomation';
 import ViewProject_MembersComponent from './Components/Members';
 import ViewProject_ResourcesComponent from './Components/Resources';
 import ViewProject_SummaryComponent from "./Components/Summary";
+import ViewProject_TaskComponent from "./Components/Tasks";
 
 function Tasks() {
 
@@ -36,7 +37,7 @@ function ViewProject() {
         {
             key: '5',
             label: 'Tasks',
-            children: <Tasks />
+            children: <ViewProject_TaskComponent />
         },
         {
             key: '3',

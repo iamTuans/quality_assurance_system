@@ -252,7 +252,7 @@ function ViewProject_InformationComponent() {
                             <div className='form-item-label'>
                             </div>
                             <div className='form-item-edit'>
-                                <Button type="primary" onClick={() => setOpenModal(true)} >Edit</Button>
+                                <Button type="primary" size="large" onClick={() => setOpenModal(true)} >Edit</Button>
                             </div>
                         </div>
                     </div>
