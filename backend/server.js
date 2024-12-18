@@ -5,7 +5,7 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const path = require('path');
 const multer = require('multer');
-const { verifyToken } = require('./src/utils/utils');
+const { verifyToken, newMongoId } = require('./src/utils/utils');
 const ROLE = require('./src/constants/ROLE');
 const projectModel = require('./src/models/project.model');
 const projectRoleModel = require('./src/models/projectRole.model');
@@ -16,6 +16,7 @@ const moment = require('moment');
 const routers = require('./src/routers/routers');
 const fileModel = require('./src/models/file.model');
 const actionModel = require('./src/models/action.model');
+const userModel = require('./src/models/user.model');
 
 dotenv.config();
 
@@ -68,6 +69,81 @@ const upload = multer({
         fileSize: 10 * 1024 * 1024 // 10MB
     }
 });
+
+app.post('/api/upload-review', verifyToken, upload.single('file'), async (req, res) => {
+    try {
+        const auth = req.auth;
+        if (auth.role == ROLE.UNAUTHORIZED) {
+            return res.status(401).send({
+                message: 'Unauthorized!'
+            });
+        }
+
+        const {
+            project_code,
+            resource_id,
+            review_status,
+        } = req.body;
+
+        const foundProject = await projectModel
+            .findOne({ code: project_code });
+        if (!foundProject) {
+            throw new Error('Project not found!');
+        }
+        const foundResource = await fileModel
+            .findOne({ _id: resource_id });
+        if (!foundResource) {
+            throw new Error('Resource not found!');
+        }
+        const foundReviewer = await userModel
+            .findOne({ _id: newMongoId(auth.id) });
+        if (!foundReviewer) {
+            throw new Error('Reviewer not found!');
+        }
+        const projectRole = await projectRoleModel.findOne({
+            user_id: newMongoId(auth.id), project_id: foundProject._id
+        })
+        if(!(projectRole || foundProject.leader == auth.id || auth.role == ROLE.ADMIN)) {
+            throw new Error('Forbidden!');
+        }
+
+        let file_type = 'documents';
+        if (req.file.mimetype.startsWith('image/')) {
+            file_type = 'images';
+        }
+        const server_file_path = `/assets/${file_type}/${req.file.filename}`;
+
+        foundResource.reviewer = auth.id;
+        foundResource.review_status = review_status;
+        foundResource.review_evidence = server_file_path;
+        await foundResource.save();
+
+        const resource = await fileModel
+            .findById(foundResource._id)
+            .populate('creator', 'username')
+            .populate('reviewer', 'username')
+            .lean();
+        
+        return res.status(200).send({
+            message: 'Resource reviewed successfully',
+            resource: resource
+        })
+
+    } catch (error) {
+        if (req.file) {
+            const filePath = path.join(__dirname, `uploads/${req.file.mimetype.startsWith('image/') ? 'images':'documents'}`, req.file.filename);
+            fs.unlink(filePath, (err) => {
+                if (err) {
+                    console.error('Error deleting file:', err);
+                } else {
+                    console.log('File deleted successfully');
+                }
+            });
+        }
+        return res.status(500).send({ message: 'Error uploading file', error: error.message });
+    }
+});
+
 // Upload Router
 app.post('/api/upload', verifyToken, upload.single('file'), async (req, res) => {
     try {

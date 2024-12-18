@@ -25,7 +25,7 @@ const componentOptions = [
     { value: '5', label: 'Develop Document' },
     { value: '6', label: 'Test Document' },
     { value: '7', label: 'Review Document' },
-    { value: '10', label: 'Other' },
+    { value: '8', label: 'Other' },
 ];
 
 const categoryOptions = [
@@ -48,7 +48,6 @@ const moduleOptions = [
 
 const statusOptions = [
     { value: '1', label: 'PASS' },
-    { value: '2', label: 'FAIL' },
 ];
 
 function ViewProject_ResourcesComponent() {
@@ -60,9 +59,13 @@ function ViewProject_ResourcesComponent() {
     const [isOpenReviewModal, setOpenReviewModal] = React.useState(false);
     const [isOpenEditModal, setOpenEditModal] = React.useState(false);
     const [resources, setResources] = React.useState([]);
-    const [state, setState] = React.useState(0);
+    const [state, setState] = React.useState(null);
 
     const [file, setFile] = React.useState(null);
+
+    React.useEffect(() => {
+        if(state) console.log(state);
+    }, [state])
 
     const fetchResources = async () => {
         await axios.get(`${configs.API_URL}/general/get-resources?project_code=${projectID}`, {
@@ -75,11 +78,12 @@ function ViewProject_ResourcesComponent() {
                 if (res.data.resources) {
                     res.data.resources.forEach(resource => {
                         buildedResources.push({
+                            ...resource,
                             key: resource._id,
-                            name: resource.name,
                             creator: resource.creator.username,
                             created_date: moment(resource.created_date).format('DD/MM/YYYY'),
-                            link: `${configs.MEDIA_BASE_URL}${resource.server_file_path}`
+                            link: `${configs.MEDIA_BASE_URL}${resource.server_file_path}`,
+                            reviewer: resource?.reviewer?.username,
                         });
                     });
                     buildedResources.reverse();
@@ -91,8 +95,18 @@ function ViewProject_ResourcesComponent() {
             })
     }
 
-    const changeState = () => {
-        setState(prev => !prev);
+    const changeState = (newState) => {
+        if(newState) {
+            setState(prev => (
+                {
+                    ...newState,
+                    module: moduleOptions[newState.module - 1].label,
+                    category: categoryOptions[newState.category - 1].label,
+                    component: componentOptions[newState.component - 1].label,
+                    version: numberOptions[newState.version - 1].label,                
+                }
+            ));
+        } else setState(null);
     }
 
     const columns = [
@@ -115,7 +129,7 @@ function ViewProject_ResourcesComponent() {
             title: 'Action',
             key: 'action',
             render: (text, record) => (
-                <Button type="primary" size='large' onClick={() => changeState()} loading={loading} >View</Button>
+                <Button type="primary" size='large' onClick={() => changeState(record)} loading={loading} >View</Button>
             ),
         }
     ]
@@ -177,28 +191,51 @@ function ViewProject_ResourcesComponent() {
 
     return (
         <>
+            <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                onChange={handleFileChange}
+            />
             {state ?
                 <div className="group-column-change-info-project">
                     <Modal
                         width={500}
-                        title="Change Project Infomation"
+                        title="Review"
                         open={isOpenReviewModal}
                         onOk={async () => {
                             setLoading(true);
-                            await axios
-                                .post(`${configs.API_URL}/pm/change-project-info`, form.getFieldsValue(), {
-                                    headers: {
-                                        Authorization: localStorage.getItem("token") || "token",
-                                    },
-                                })
-                                .then((res) => {
+
+                            const formData = new FormData();
+                            formData.append('project_code', projectID);
+                            formData.append('file', file);
+                            formData.append('resource_id', state._id);
+                            formData.append('review_status', form.getFieldValue('status'));
+
+                            await axios.post(`${configs.API_URL}/upload-review`, formData, {
+                                headers: {
+                                    Authorization: localStorage.getItem("token") || "token",
+                                    'Content-Type': 'multipart/form-data'
+                                }
+                            })
+                                .then(res => {
                                     message.success(res.data.message);
-                                    changeState();
+                                    form.resetFields();
+                                    setFile(null);
+                                    setState(prev => ({
+                                        ...prev,
+                                        reviewer: res.data.resource.reviewer.username,
+                                        review_status: res.data.resource.review_status,
+                                        review_evidence: `${res.data.resource.review_evidence}`,
+                                    }));
                                 })
-                                .catch((err) => {
+                                .catch(err => {
                                     message.error(err.response.data.message);
                                 });
-                            setOpenModal(false)
+
+                            // ToDo
+                            setOpenReviewModal(false);
+                            fetchResources();
                             setLoading(false);
                         }}
                         onCancel={() => setOpenReviewModal(false)}
@@ -215,13 +252,6 @@ function ViewProject_ResourcesComponent() {
                             style={{ maxWidth: 600 }}
                         // initialValues={project}
                         >
-                            <Form.Item
-                                label="Reviewer"
-                                name="reviewer"
-                                rules={[{ required: true, message: "Please input!" }]}
-                            >
-                                <Input style={{ width: "100%" }} />
-                            </Form.Item>
                             <Form.Item
                                 label="Status Review"
                                 name="status"
@@ -253,12 +283,23 @@ function ViewProject_ResourcesComponent() {
                         title="Edit Resource"
                         open={isOpenEditModal}
                         onOk={async () => {
-                            form.setFieldValue('file', file);
-                            form.validateFields()
-                                .then(async (values) => await onAddResource(values))
-                                .catch(err => {
-                                    console.log(err);
+                            setLoading(true);
+                            await axios
+                                .post(`${configs.API_URL}/general/change-resource`, form.getFieldsValue(), {
+                                    headers: {
+                                        Authorization: localStorage.getItem("token") || "token",
+                                    },
                                 })
+                                .then((res) => {
+                                    message.success(res.data.message);
+                                    localStorage.setItem('auth', JSON.stringify(form.getFieldsValue()))
+                                    changeState();
+                                })
+                                .catch((err) => {
+                                    message.error(err.response.data.message);
+                                });
+                            setOpenModal(false)
+                            setLoading(false);
                         }}
                         onCancel={() => setOpenEditModal(false)}
                         okButtonProps={{
@@ -272,7 +313,7 @@ function ViewProject_ResourcesComponent() {
                             form={form}
                             variant={variant || 'outlined'}
                             style={{ maxWidth: 600 }}
-                            initialValues={{ variant: 'outlined' }}
+                            initialValues={state}
                         >
                             <Form.Item
                                 label="Name"
@@ -280,14 +321,6 @@ function ViewProject_ResourcesComponent() {
                                 rules={[{ required: true, message: 'Please input!' }]}
                             >
                                 <Input />
-                            </Form.Item>
-
-                            <Form.Item
-                                label="Version"
-                                name="version"
-                                rules={[{ required: true, message: 'Please input!' }]}
-                            >
-                                <Select options={numberOptions} />
                             </Form.Item>
 
                             <Form.Item
@@ -324,13 +357,13 @@ function ViewProject_ResourcesComponent() {
                         </Form>
                     </Modal>
                     <div className=''>
-                        <label className="title">RESOURCE INFOMATION</label>
+                        <label className="title">RESOURCE INFORMATION</label>
                     </div>
                     <div className='information-form'>
                         <div className=''>
                             <div className='form-item'>
                                 <div className='form-item-label_a'>
-                                    Resource Name:
+                                    Resource Name: {state.name}
                                 </div>
                                 <div className='form-item-value'>
                                 </div>
@@ -338,7 +371,7 @@ function ViewProject_ResourcesComponent() {
 
                             <div className='form-item'>
                                 <div className='form-item-label_a'>
-                                    Resource Version:
+                                    Resource Version: {state.version}
                                 </div>
                                 <div className='form-item-value'>
                                 </div>
@@ -346,7 +379,29 @@ function ViewProject_ResourcesComponent() {
 
                             <div className='form-item'>
                                 <div className='form-item-label_a'>
-                                    Components:
+                                    Components: {state.component}
+                                </div>
+                                <div className='form-item-value'>
+                                </div>
+                            </div>
+
+                            <div className='form-item'>
+                                <div className='form-item-label_a' style={{ display: 'flex', gap: 5 }}>
+                                    Document: <a style={{ color: 'blue', cursor: 'pointer' }} href={state.link} target='_blank'>{state.link}</a>
+                                </div>
+                                <div className='form-item-value'>
+                                </div>
+                            </div>
+                            <div className='form-item'>
+                                <div className='form-item-label_a'>
+                                    Create Date: {state.created_date}
+                                </div>
+                                <div className='form-item-value'>
+                                </div>
+                            </div>
+                            <div className='form-item'>
+                                <div className='form-item-label_a'>
+                                    Module: {state.module}
                                 </div>
                                 <div className='form-item-value'>
                                 </div>
@@ -354,29 +409,7 @@ function ViewProject_ResourcesComponent() {
 
                             <div className='form-item'>
                                 <div className='form-item-label_a'>
-                                    Document:
-                                </div>
-                                <div className='form-item-value'>
-                                </div>
-                            </div>
-                            <div className='form-item'>
-                                <div className='form-item-label_a'>
-                                    Create Date:
-                                </div>
-                                <div className='form-item-value'>
-                                </div>
-                            </div>
-                            <div className='form-item'>
-                                <div className='form-item-label_a'>
-                                    Module:
-                                </div>
-                                <div className='form-item-value'>
-                                </div>
-                            </div>
-
-                            <div className='form-item'>
-                                <div className='form-item-label_a'>
-                                    Category:
+                                    Category: {state.category}
                                 </div>
                                 <div className='form-item-value'>
                                 </div>
@@ -392,7 +425,7 @@ function ViewProject_ResourcesComponent() {
                         <div className=''>
                             <div className='form-item'>
                                 <div className='form-item-label_a'>
-                                    Reviewer:
+                                    Reviewer: {state?.reviewer}
                                 </div>
                                 <div className='form-item-value'>
                                 </div>
@@ -400,35 +433,38 @@ function ViewProject_ResourcesComponent() {
 
                             <div className='form-item'>
                                 <div className='form-item-label_a'>
-                                    Status Review:
+                                    Status Review: {state?.review_status ? 'PASS' : ''}
                                 </div>
                                 <div className='form-item-value'>
                                 </div>
                             </div>
 
                             <div className='form-item'>
-                                <div className='form-item-label_a'>
-                                    Evidence:
+                                <div className='form-item-label_a' style={{ display: 'flex', gap: 5 }}>
+                                    Evidence: 
+                                    <a style={{ color: 'blue', cursor: 'pointer' }} href={configs.MEDIA_BASE_URL + state?.review_evidence} target='_blank'>
+                                        {configs.MEDIA_BASE_URL + state?.review_evidence}
+                                    </a>
                                 </div>
                                 <div className='form-item-value'>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div>
-                        <Button type="primary" onClick={() => setOpenEditModal(true)} loading={loading}  >Edit</Button>
+                    <div style={{
+                        padding: 10,
+                        display: 'flex',
+                        gap: 10,
+                    }}>
+                        <Button style={{
+                            display: state?.creator === JSON.parse(localStorage.getItem('auth')).username ? 'block' : 'none'
+                        }} type="primary" onClick={() => setOpenEditModal(true)} loading={loading}  >Edit</Button>
                         <Button type="primary" onClick={() => setOpenReviewModal(true)} loading={loading}  >Review</Button>
-                        <Button type="primary"  onClick={() => changeState()} loading={loading} >Back</Button>
+                        <Button type="primary"  onClick={() => changeState(null)} loading={loading} >Back</Button>
                     </div>
                 </div> :
                 <div>
                     <div>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            style={{ display: 'none' }}
-                            onChange={handleFileChange}
-                        />
                         <Modal
                             width={500}
                             title="Add Resource"

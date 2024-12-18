@@ -6,10 +6,10 @@ const COMPONENT = [
     { value: '5', label: 'Develop Document' },
     { value: '6', label: 'Test Document' },
     { value: '7', label: 'Review Document' },
-    { value: '10', label: 'Other' },
+    { value: '8', label: 'Other' },
 ];
 
-const components = [1, 2, 3, 4, 5, 6, 7, 10];
+const components = [1, 2, 3, 4, 5, 6, 7, 8];
 
 module.exports = {
     COMPONENT,

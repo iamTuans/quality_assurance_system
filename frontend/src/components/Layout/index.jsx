@@ -33,6 +33,8 @@ import {
 import React from 'react'
 import { Modal, Form, Input, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import config from '../../.configs';
 
 const APP_NAME = 'PMS'
 
@@ -104,124 +106,134 @@ const MobileNav = ({ onOpen, auth, ...rest }) => {
 
     return (
         <>
-        <Modal
-            title="Change Password"
-            open={visible}
-            onOk={() => {
-                form
-                    .validateFields()
-                    .then((values) => {
-                        if(values.new_password.length < 8) {
-                            message.error('Password must be at least 6 characters');
-                            return;
-                        }
-                        if(values.new_password !== values.confirm_password) {
-                            message.error('Passwords do not match');
-                            return;
-                        }
-                        /// TODO: Change Password
-                        form.resetFields();
-                        setVisible(false);
-                    })
-                    .catch((info) => {
-                        console.log('Validate Failed:', info);
-                    });
-            }}
-            onCancel={() => setVisible(false)}
-        >
-            <Form
-                form={form}
+            <Modal
+                title="Change Password"
+                open={visible}
+                onOk={() => {
+                    form
+                        .validateFields()
+                        .then(async (values) => {
+                            if (values.new_password.length < 8) {
+                                message.error('Password must be at least 6 characters');
+                                return;
+                            }
+                            if (values.new_password !== values.confirm_password) {
+                                message.error('Passwords do not match');
+                                return;
+                            }
+                            await axios.post(`${config.API_URL}/general/change-password`, values, {
+                                headers: {
+                                    Authorization: localStorage.getItem('token') || 'token'
+                                }
+                            })
+                                .then(res => {
+                                    message.success(res.data.message);
+                                })
+                                .catch(err => {
+                                    message.error(err.response.data.message);
+                                })
+                            form.resetFields();
+                            setVisible(false);
+                        })
+                        .catch((info) => {
+                            console.log('Validate Failed:', info);
+                        });
+                }}
+                onCancel={() => setVisible(false)}
             >
-                <Form.Item
-                    label="Old Password"
-                    name="old_password"
-                    rules={[{ required: true, message: 'Please input your old password!' }]}
+                <Form
+                    form={form}
                 >
-                    <Input.Password placeholder="Old Password" />
-                </Form.Item>
+                    <Form.Item
+                        label="Old Password"
+                        name="old_password"
+                        rules={[{ required: true, message: 'Please input your old password!' }]}
+                    >
+                        <Input.Password placeholder="Old Password" />
+                    </Form.Item>
 
-                <Form.Item
-                    label="New Password"
-                    name="new_password"
-                    rules={[{ required: true, message: 'Please input your new password!' }]}
-                >
-                    <Input.Password placeholder="New Password" />
-                </Form.Item>
+                    <Form.Item
+                        label="New Password"
+                        name="new_password"
+                        rules={[{ required: true, message: 'Please input your new password!' }]}
+                    >
+                        <Input.Password placeholder="New Password" />
+                    </Form.Item>
 
-                <Form.Item
-                    label="Confirm Password"
-                    name="confirm_password"
-                    rules={[{ required: true, message: 'Please input your new password!' }]}
-                >
-                    <Input.Password placeholder="Confirm Password" />
-                </Form.Item>
-            </Form>
-        </Modal>
-                <Flex
-            ml={{ base: 0, md: 60 }}
-            px={{ base: 4, md: 4 }}
-            height="20"
-            alignItems="center"
-            bg={useColorModeValue('white', 'gray.900')}
-            borderBottomWidth="1px"
-            borderBottomColor={useColorModeValue('gray.200', 'gray.700')}
-            justifyContent={{ base: 'space-between', md: 'flex-end' }}
-            {...rest}>
-            <IconButton
-                display={{ base: 'flex', md: 'none' }}
-                onClick={onOpen}
-                variant="outline"
-                aria-label="open menu"
-                icon={<FiMenu />}
-            />
+                    <Form.Item
+                        label="Confirm Password"
+                        name="confirm_password"
+                        rules={[{ required: true, message: 'Please input your new password!' }]}
+                    >
+                        <Input.Password placeholder="Confirm Password" />
+                    </Form.Item>
+                </Form>
+            </Modal>
+            <Flex
+                ml={{ base: 0, md: 60 }}
+                px={{ base: 4, md: 4 }}
+                height="20"
+                alignItems="center"
+                bg={useColorModeValue('white', 'gray.900')}
+                borderBottomWidth="1px"
+                borderBottomColor={useColorModeValue('gray.200', 'gray.700')}
+                justifyContent={{ base: 'space-between', md: 'flex-end' }}
+                {...rest}>
+                <IconButton
+                    display={{ base: 'flex', md: 'none' }}
+                    onClick={onOpen}
+                    variant="outline"
+                    aria-label="open menu"
+                    icon={<FiMenu />}
+                />
 
-            <Text
-                display={{ base: 'flex', md: 'none' }}
-                fontSize="2xl"
-                fontFamily="monospace"
-                fontWeight="bold">
-                {APP_NAME}
-            </Text>
+                <Text
+                    display={{ base: 'flex', md: 'none' }}
+                    fontSize="2xl"
+                    fontFamily="monospace"
+                    fontWeight="bold">
+                    {APP_NAME}
+                </Text>
 
-            <HStack spacing={{ base: '0', md: '6' }}>
-                <IconButton size="lg" variant="ghost" aria-label="open menu" icon={<FiBell />} />
-                <Flex alignItems={'center'}>
-                    <Menu>
-                        <MenuButton py={2} transition="all 0.3s" _focus={{ boxShadow: 'none' }}>
-                            <HStack>
-                                <Avatar
-                                    size={'sm'}
-                                    src={
-                                        'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'
-                                    }
-                                />
-                                <VStack
-                                    display={{ base: 'none', md: 'flex' }}
-                                    alignItems="flex-start"
-                                    spacing="1px"
-                                    ml="2">
-                                    <Text fontSize="sm" fontWeight="bold" >{auth?.full_name}</Text>
-                                    <Text fontSize="xs" color="gray.600">
-                                        {auth?.username}
-                                    </Text>
-                                </VStack>
-                                <Box display={{ base: 'none', md: 'flex' }}>
-                                    <FiChevronDown />
-                                </Box>
-                            </HStack>
-                        </MenuButton>
-                        <MenuList
-                            bg={useColorModeValue('white', 'gray.900')}
-                            borderColor={useColorModeValue('gray.200', 'gray.700')}>
-                            <MenuItem onClick={() => navigate('/profile')}>Profile</MenuItem>
-                            <MenuItem onClick={() => setVisible(true)}>Change Password</MenuItem>
-                            <MenuDivider />
-                            <MenuItem onClick={() => navigate('/logout')}>Log out</MenuItem>
-                        </MenuList>
-                    </Menu>
-                </Flex>
-            </HStack>
-        </Flex>
+                <HStack spacing={{ base: '0', md: '6' }}>
+                    <IconButton size="lg" variant="ghost" aria-label="open menu" icon={<FiBell />} />
+                    <Flex alignItems={'center'}>
+                        <Menu>
+                            <MenuButton py={2} transition="all 0.3s" _focus={{ boxShadow: 'none' }}>
+                                <HStack>
+                                    <Avatar
+                                        size={'sm'}
+                                        src={
+                                            'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'
+                                        }
+                                    />
+                                    <VStack
+                                        display={{ base: 'none', md: 'flex' }}
+                                        alignItems="flex-start"
+                                        spacing="1px"
+                                        ml="2">
+                                        <Text fontSize="sm" fontWeight="bold" >{auth?.full_name}</Text>
+                                        <Text fontSize="xs" color="gray.600">
+                                            {auth?.username}
+                                        </Text>
+                                    </VStack>
+                                    <Box display={{ base: 'none', md: 'flex' }}>
+                                        <FiChevronDown />
+                                    </Box>
+                                </HStack>
+                            </MenuButton>
+                            <MenuList
+                                bg={useColorModeValue('white', 'gray.900')}
+                                borderColor={useColorModeValue('gray.200', 'gray.700')}>
+                                <MenuItem onClick={() => navigate('/profile')}>Profile</MenuItem>
+                                <MenuItem onClick={() => setVisible(true)}>Change Password</MenuItem>
+                                <MenuDivider />
+                                <MenuItem onClick={() => navigate('/logout')}>Log out</MenuItem>
+                            </MenuList>
+                        </Menu>
+                    </Flex>
+                </HStack>
+            </Flex>
         </>
     )
 }
@@ -247,13 +259,13 @@ const Layout = ({ children }) => {
     ];
 
     let menu_items = [];
-    if(auth?.role === 'admin') menu_items = admin_menu_items;
-    if(auth?.role === 'pm') menu_items = pm_menu_items;
-    if(auth?.role == 'user') menu_items = user_menu_items;
+    if (auth?.role === 'admin') menu_items = admin_menu_items;
+    if (auth?.role === 'pm') menu_items = pm_menu_items;
+    if (auth?.role == 'user') menu_items = user_menu_items;
 
     return (
         <Box minH="100vh" bg={useColorModeValue('gray.100', 'gray.900')}>
-            <SidebarContent onClose={() => onClose} display={{ base: 'none', md: 'block' }} menu_items={menu_items}/>
+            <SidebarContent onClose={() => onClose} display={{ base: 'none', md: 'block' }} menu_items={menu_items} />
             <Drawer
                 isOpen={isOpen}
                 placement="left"

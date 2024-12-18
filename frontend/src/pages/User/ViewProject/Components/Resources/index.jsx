@@ -25,7 +25,7 @@ const componentOptions = [
     { value: '5', label: 'Develop Document' },
     { value: '6', label: 'Test Document' },
     { value: '7', label: 'Review Document' },
-    { value: '10', label: 'Other' },
+    { value: '8', label: 'Other' },
 ];
 
 const categoryOptions = [
@@ -46,13 +46,26 @@ const moduleOptions = [
     { value: '5', label: 'TEST' },
 ];
 
+const statusOptions = [
+    { value: '1', label: 'PASS' },
+];
+
 function ViewProject_ResourcesComponent() {
 
     const { projectID } = useParams();
     const fileInputRef = React.useRef(null);
     const [loading, setLoading] = React.useState(false);
     const [isOpenModal, setOpenModal] = React.useState(false);
+    const [isOpenReviewModal, setOpenReviewModal] = React.useState(false);
+    const [isOpenEditModal, setOpenEditModal] = React.useState(false);
     const [resources, setResources] = React.useState([]);
+    const [state, setState] = React.useState(null);
+
+    const [file, setFile] = React.useState(null);
+
+    React.useEffect(() => {
+        if (state) console.log(state);
+    }, [state])
 
     const fetchResources = async () => {
         await axios.get(`${configs.API_URL}/general/get-resources?project_code=${projectID}`, {
@@ -65,11 +78,12 @@ function ViewProject_ResourcesComponent() {
                 if (res.data.resources) {
                     res.data.resources.forEach(resource => {
                         buildedResources.push({
+                            ...resource,
                             key: resource._id,
-                            name: resource.name,
                             creator: resource.creator.username,
                             created_date: moment(resource.created_date).format('DD/MM/YYYY'),
-                            link: `${configs.MEDIA_BASE_URL}${resource.server_file_path}`
+                            link: `${configs.MEDIA_BASE_URL}${resource.server_file_path}`,
+                            reviewer: resource?.reviewer?.username,
                         });
                     });
                     buildedResources.reverse();
@@ -79,6 +93,20 @@ function ViewProject_ResourcesComponent() {
             .catch(err => {
 
             })
+    }
+
+    const changeState = (newState) => {
+        if (newState) {
+            setState(prev => (
+                {
+                    ...newState,
+                    module: moduleOptions[newState.module - 1].label,
+                    category: categoryOptions[newState.category - 1].label,
+                    component: componentOptions[newState.component - 1].label,
+                    version: numberOptions[newState.version - 1].label,
+                }
+            ));
+        } else setState(null);
     }
 
     const columns = [
@@ -101,17 +129,13 @@ function ViewProject_ResourcesComponent() {
             title: 'Action',
             key: 'action',
             render: (text, record) => (
-                <Button type="primary" onClick={() => {
-                    window.open(record.link, '_blank');
-                }} size='large'>View</Button>
+                <Button type="primary" size='large' onClick={() => changeState(record)} loading={loading} >View</Button>
             ),
         }
     ]
 
     const [form] = Form.useForm();
     const variant = Form.useWatch('variant', form);
-
-    const [file, setFile] = React.useState(null);
 
     const handleFileChange = (event) => {
         const file = event.target.files[0];
@@ -150,132 +174,397 @@ function ViewProject_ResourcesComponent() {
     };
 
     React.useEffect(() => {
+        setFile(file);
         fetchResources();
     }, [projectID])
 
+    const formItemLayout = {
+        labelCol: {
+            xs: { span: 24 },
+            sm: { span: 6 },
+        },
+        wrapperCol: {
+            xs: { span: 24 },
+            sm: { span: 14 },
+        },
+    };
+
     return (
-        <div>
+        <>
             <input
                 type="file"
                 ref={fileInputRef}
                 style={{ display: 'none' }}
                 onChange={handleFileChange}
             />
-            <Modal
-                width={500}
-                title="Add Resource"
-                open={isOpenModal}
-                onOk={async () => {
-                    form.setFieldValue('file', file);
-                    form.validateFields()
-                        .then(async (values) => await onAddResource(values))
-                        .catch(err => {
-                            console.log(err);
-                        })
-                }}
-                onCancel={() => setOpenModal(false)}
-                okButtonProps={{
-                    size: "large",
-                }}
-                cancelButtonProps={{
-                    size: "large",
-                }}
-            >
-                <Form
-                    form={form}
-                    variant={variant || 'outlined'}
-                    style={{ maxWidth: 600 }}
-                    initialValues={{ variant: 'outlined' }}
-                >
-                    <Form.Item
-                        label="Name"
-                        name="name"
-                        rules={[{ required: true, message: 'Please input!' }]}
-                    >
-                        <Input />
-                    </Form.Item>
+            {state ?
+                <div className="group-column-change-info-project">
+                    <Modal
+                        width={500}
+                        title="Review"
+                        open={isOpenReviewModal}
+                        onOk={async () => {
+                            setLoading(true);
 
-                    <Form.Item
-                        label="Version"
-                        name="version"
-                        rules={[{ required: true, message: 'Please input!' }]}
-                    >
-                        <Select options={numberOptions} />
-                    </Form.Item>
+                            const formData = new FormData();
+                            formData.append('project_code', projectID);
+                            formData.append('file', file);
+                            formData.append('resource_id', state._id);
+                            formData.append('review_status', form.getFieldValue('status'));
 
-                    <Form.Item
-                        label="Create date"
-                        name="create_date"
-                        rules={[{ required: true, message: 'Please input!' }]}
-                    >
-                        <DatePicker
-                            style={{ width: '100%' }}
-                            format="DD/MM/YYYY"
-                        />
-                    </Form.Item>
+                            await axios.post(`${configs.API_URL}/upload-review`, formData, {
+                                headers: {
+                                    Authorization: localStorage.getItem("token") || "token",
+                                    'Content-Type': 'multipart/form-data'
+                                }
+                            })
+                                .then(res => {
+                                    message.success(res.data.message);
+                                    form.resetFields();
+                                    setFile(null);
+                                    setState(prev => ({
+                                        ...prev,
+                                        reviewer: res.data.resource.reviewer.username,
+                                        review_status: res.data.resource.review_status,
+                                        review_evidence: `${res.data.resource.review_evidence}`,
+                                    }));
+                                })
+                                .catch(err => {
+                                    message.error(err.response.data.message);
+                                });
 
-                    <Form.Item
-                        label="Description"
-                        name="description"
-                        rules={[{ required: true, message: 'Please input!' }]}
+                            // ToDo
+                            setOpenReviewModal(false);
+                            fetchResources();
+                            setLoading(false);
+                        }}
+                        onCancel={() => setOpenReviewModal(false)}
+                        okButtonProps={{
+                            size: "large",
+                        }}
+                        cancelButtonProps={{
+                            size: "large",
+                        }}
                     >
-                        <Input.TextArea />
-                    </Form.Item>
+                        <Form
+                            {...formItemLayout}
+                            form={form}
+                            style={{ maxWidth: 600 }}
+                        >
+                            <Form.Item
+                                label="Status Review"
+                                name="status"
+                                rules={[{ required: true, message: "Please input!" }]}
+                            >
+                                <Select style={{ width: "100%" }} options={statusOptions} />
+                            </Form.Item>
+                            <Form.Item
+                                label="Evidence"
+                                name="evidence"
+                                rules={[{ required: true, message: 'Please upload a file!' }]}
+                            >
+                                {file ?
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                    }}>
+                                        <p>{file.name}</p>
+                                        <Button onClick={() => setFile(null)}>Remove</Button>
+                                    </div> :
+                                    <Button onClick={() => fileInputRef.current.click()}>Upload</Button>
+                                }
+                            </Form.Item>
+                        </Form>
+                    </Modal>
+                    <Modal
+                        width={500}
+                        title="Edit Resource"
+                        open={isOpenEditModal}
+                        onOk={async () => {
+                            setLoading(true);
+                            await axios
+                                .post(`${configs.API_URL}/general/change-resource`, form.getFieldsValue(), {
+                                    headers: {
+                                        Authorization: localStorage.getItem("token") || "token",
+                                    },
+                                })
+                                .then((res) => {
+                                    message.success(res.data.message);
+                                    localStorage.setItem('auth', JSON.stringify(form.getFieldsValue()))
+                                    changeState();
+                                })
+                                .catch((err) => {
+                                    message.error(err.response.data.message);
+                                });
+                            setOpenModal(false)
+                            setLoading(false);
+                        }}
+                        onCancel={() => setOpenEditModal(false)}
+                        okButtonProps={{
+                            size: "large",
+                        }}
+                        cancelButtonProps={{
+                            size: "large",
+                        }}
+                    >
+                        <Form
+                            form={form}
+                            variant={variant || 'outlined'}
+                            style={{ maxWidth: 600 }}
+                            initialValues={state}
+                        >
+                            <Form.Item
+                                label="Name"
+                                name="name"
+                                rules={[{ required: true, message: 'Please input!' }]}
+                            >
+                                <Input />
+                            </Form.Item>
 
-                    <Form.Item
-                        label="Components"
-                        name="component"
-                        rules={[{ required: true, message: 'Please input!' }]}
-                    >
-                        <Select options={componentOptions} />
-                    </Form.Item>
+                            <Form.Item
+                                label="Description"
+                                name="description"
+                                rules={[{ required: true, message: 'Please input!' }]}
+                            >
+                                <Input.TextArea />
+                            </Form.Item>
 
-                    <Form.Item
-                        label="Category"
-                        name="category"
-                        rules={[{ required: true, message: 'Please input!' }]}
-                    >
-                        <Select options={categoryOptions} />
-                    </Form.Item>
+                            <Form.Item
+                                label="Components"
+                                name="component"
+                                rules={[{ required: true, message: 'Please input!' }]}
+                            >
+                                <Select options={componentOptions} />
+                            </Form.Item>
 
-                    <Form.Item
-                        label="Module"
-                        name="module"
-                        rules={[{ required: true, message: 'Please input!' }]}
-                    >
-                        <Select options={moduleOptions}></Select>
-                    </Form.Item>
+                            <Form.Item
+                                label="Category"
+                                name="category"
+                                rules={[{ required: true, message: 'Please input!' }]}
+                            >
+                                <Select options={categoryOptions} />
+                            </Form.Item>
 
-                    <Form.Item
-                        label="File"
-                        name="file"
-                        rules={[{ required: true, message: 'Please upload a file!' }]}
-                    >
-                        {file ?
-                            <div style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                            }}>
-                                <p>{file.name}</p>
-                                <Button onClick={() => setFile(null)}>Remove</Button>
-                            </div> :
-                            <Button onClick={() => fileInputRef.current.click()}>Upload</Button>
-                        }
-                    </Form.Item>
-                </Form>
-            </Modal>
-            <div style={{
-                display: 'flex',
-                width: '100%',
-                justifyContent: 'flex-end',
-            }}>
-                <Button type="primary" size="large" icon={<PlusOutlined />} style={{ marginBottom: 16 }} onClick={() => setOpenModal(true)}>
-                    Add Resource
-                </Button>
-            </div>
-            <Table columns={columns} dataSource={resources} />
-        </div>
+                            <Form.Item
+                                label="Module"
+                                name="module"
+                                rules={[{ required: true, message: 'Please input!' }]}
+                            >
+                                <Select options={moduleOptions}></Select>
+                            </Form.Item>
+                        </Form>
+                    </Modal>
+                    <div className=''>
+                        <label className="title">RESOURCE INFORMATION</label>
+                    </div>
+                    <div className='information-form'>
+                        <div className=''>
+                            <div className='form-item'>
+                                <div className='form-item-label_a'>
+                                    Resource Name: {state?.name}
+                                </div>
+                            </div>
+
+                            <div className='form-item'>
+                                <div className='form-item-label_a'>
+                                    Resource Version: {state?.version}
+                                </div>
+                            </div>
+
+                            <div className='form-item'>
+                                <div className='form-item-label_a'>
+                                    Components: {state?.component}
+                                </div>
+                            </div>
+
+                            <div className='form-item'>
+                                <div className='form-item-label_a' style={{ display: 'flex', gap: 5 }}>
+                                    Document: <a style={{ color: 'blue', cursor: 'pointer' }} href={state.link} target='_blank'>{state.link}</a>
+                                </div>
+                            </div>
+                            <div className='form-item'>
+                                <div className='form-item-label_a'>
+                                    Create Date: {state?.created_date}
+                                </div>
+                            </div>
+                            <div className='form-item'>
+                                <div className='form-item-label_a'>
+                                    Module: {state?.module}
+                                </div>
+                            </div>
+
+                            <div className='form-item'>
+                                <div className='form-item-label_a'>
+                                    Category: {state?.category}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className=''>
+                        <label className="title">REVIEW</label>
+                    </div>
+
+                    <div className='information-form'>
+                        <div className=''>
+                            <div className='form-item'>
+                                <div className='form-item-label_a'>
+                                    Reviewer: {state?.reviewer}
+                                </div>
+                            </div>
+
+                            <div className='form-item'>
+                                <div className='form-item-label_a'>
+                                    Status Review: {state?.review_status ? 'PASS' : ''}
+                                </div>
+                            </div>
+
+                            <div className='form-item'>
+                                <div className='form-item-label_a' style={{ display: 'flex', gap: 5 }}>
+                                    Evidence:
+                                    {state?.review_evidence ? (
+                                        <a style={{ color: 'blue', cursor: 'pointer' }} href={configs.MEDIA_BASE_URL + state?.review_evidence} target='_blank'>
+                                            {configs.MEDIA_BASE_URL + state?.review_evidence}
+                                        </a>
+                                    ) : ('')}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div style={{
+                        padding: 10,
+                        display: 'flex',
+                        gap: 10,
+                    }}>
+                        <Button style={{
+                            display: state?.creator === JSON.parse(localStorage.getItem('auth')).username ? 'block' : 'none'
+                        }} type="primary" onClick={() => setOpenEditModal(true)} loading={loading}  >Edit</Button>
+                        <Button type="primary" onClick={() => setOpenReviewModal(true)} loading={loading}  >Review</Button>
+                        <Button type="primary" onClick={() => changeState(null)} loading={loading} >Back</Button>
+                    </div>
+                </div> :
+                <div>
+                    <div>
+                        <Modal
+                            width={500}
+                            title="Add Resource"
+                            open={isOpenModal}
+                            onOk={async () => {
+                                form.setFieldValue('file', file);
+                                form.validateFields()
+                                    .then(async (values) => await onAddResource(values))
+                                    .catch(err => {
+                                        console.log(err);
+                                    })
+                            }}
+                            onCancel={() => setOpenModal(false)}
+                            okButtonProps={{
+                                size: "large",
+                            }}
+                            cancelButtonProps={{
+                                size: "large",
+                            }}
+                        >
+                            <Form
+                                form={form}
+                                variant={variant || 'outlined'}
+                                style={{ maxWidth: 600 }}
+                                initialValues={{ variant: 'outlined' }}
+                            >
+                                <Form.Item
+                                    label="Name"
+                                    name="name"
+                                    rules={[{ required: true, message: 'Please input!' }]}
+                                >
+                                    <Input />
+                                </Form.Item>
+
+                                <Form.Item
+                                    label="Version"
+                                    name="version"
+                                    rules={[{ required: true, message: 'Please input!' }]}
+                                >
+                                    <Select options={numberOptions} />
+                                </Form.Item>
+
+                                <Form.Item
+                                    label="Create date"
+                                    name="create_date"
+                                    rules={[{ required: true, message: 'Please input!' }]}
+                                >
+                                    <DatePicker
+                                        style={{ width: '100%' }}
+                                        format="DD/MM/YYYY"
+                                    />
+                                </Form.Item>
+
+                                <Form.Item
+                                    label="Description"
+                                    name="description"
+                                    rules={[{ required: true, message: 'Please input!' }]}
+                                >
+                                    <Input.TextArea />
+                                </Form.Item>
+
+                                <Form.Item
+                                    label="Components"
+                                    name="component"
+                                    rules={[{ required: true, message: 'Please input!' }]}
+                                >
+                                    <Select options={componentOptions} />
+                                </Form.Item>
+
+                                <Form.Item
+                                    label="Category"
+                                    name="category"
+                                    rules={[{ required: true, message: 'Please input!' }]}
+                                >
+                                    <Select options={categoryOptions} />
+                                </Form.Item>
+
+                                <Form.Item
+                                    label="Module"
+                                    name="module"
+                                    rules={[{ required: true, message: 'Please input!' }]}
+                                >
+                                    <Select options={moduleOptions}></Select>
+                                </Form.Item>
+
+                                <Form.Item
+                                    label="File"
+                                    name="file"
+                                    rules={[{ required: true, message: 'Please upload a file!' }]}
+                                >
+                                    {file ?
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                        }}>
+                                            <p>{file.name}</p>
+                                            <Button onClick={() => setFile(null)}>Remove</Button>
+                                        </div> :
+                                        <Button onClick={() => fileInputRef.current.click()}>Upload</Button>
+                                    }
+                                </Form.Item>
+                            </Form>
+                        </Modal>
+                        <div style={{
+                            display: 'flex',
+                            width: '100%',
+                            justifyContent: 'flex-end',
+                        }}>
+                            <Button type="primary" size="large" icon={<PlusOutlined />} style={{ marginBottom: 16 }} onClick={() => setOpenModal(true)}>
+                                Add Resource
+                            </Button>
+                        </div>
+                        <Table columns={columns} dataSource={resources} />
+                    </div>
+                </div>}
+
+        </>
     )
 }
 

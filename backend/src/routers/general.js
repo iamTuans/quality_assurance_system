@@ -2,6 +2,11 @@ const express = require('express');
 const ROLE = require('../constants/ROLE');
 const router = express.Router();
 const moment = require('moment');
+const bcrypt = require("bcrypt"); //thư viện mã hóa mật khẩu
+
+const { components } = require('../constants/documents/COMPONENT');
+const { categories } = require('../constants/documents/CATEGORY');
+const { modules } = require('../constants/documents/MODULE');
 
 const { verifyToken, newMongoId } = require('../utils/utils');
 
@@ -12,16 +17,53 @@ const projectRoleModel = require('../models/projectRole.model');
 const fileModel = require('../models/file.model');
 const actionModel = require('../models/action.model');
 
-router.get('/get-actions', verifyToken, async (req, res) => {
+router.post('/change-password', verifyToken, async (req, res) => {
     try {
         const auth = req.auth;
-        if(auth.role == ROLE.UNAUTHORIZED) {
+        if (auth.role == ROLE.UNAUTHORIZED) {
             return res.status(401).send({
                 message: 'Unauthorized!'
             });
         }
 
-        if(auth.role == ROLE.ADMIN) {
+        const foundUser = await userModel.findById(newMongoId(auth.id));
+        if (!foundUser) {
+            return res.status(400).send({
+                message: 'User not found!'
+            });
+        }
+
+        const { old_password, new_password } = req.body;
+        const passwordMatch = await bcrypt.compare(old_password, foundUser.password);
+        if (!passwordMatch) {
+            return res.status(400).send({
+                message: 'Old password is incorrect!'
+            });
+        }
+        const hashedPassword = await bcrypt.hash(new_password, 10);
+        foundUser.password = hashedPassword;
+        await foundUser.save();
+
+        return res.status(200).send({
+            message: 'Change password successful!'
+        });
+    } catch (error) {
+        return res.status(500).send({
+            message: 'Internal server error!'
+        });
+    }
+});
+
+router.get('/get-actions', verifyToken, async (req, res) => {
+    try {
+        const auth = req.auth;
+        if (auth.role == ROLE.UNAUTHORIZED) {
+            return res.status(401).send({
+                message: 'Unauthorized!'
+            });
+        }
+
+        if (auth.role == ROLE.ADMIN) {
             const actions = await actionModel
                 .find()
                 .populate('action_user', 'username')
@@ -33,7 +75,7 @@ router.get('/get-actions', verifyToken, async (req, res) => {
         }
 
         const { project_code } = req.query;
-        if(project_code) {
+        if (project_code) {
             const foundProject = await projectModel.findOne({ code: project_code });
             if (!foundProject) {
                 return res.status(400).send({
@@ -59,19 +101,19 @@ router.get('/get-actions', verifyToken, async (req, res) => {
             })
         } else {
             const projectsIsLeader = await projectModel
-                .find({ leader: newMongoId(auth.id)})
+                .find({ leader: newMongoId(auth.id) })
                 .populate('creator', 'username')
                 .populate('leader', 'username');
-        
+
             const projectIsMember = await projectRoleModel
                 .find({ user_id: newMongoId(auth.id) })
                 .populate({
-                path: 'project_id',
-                select: 'code name creator leader rank category start_date end_date status',
-                populate: [
-                    { path: 'leader', select: 'username' },
-                    { path: 'creator', select: 'username' }
-                ]
+                    path: 'project_id',
+                    select: 'code name creator leader rank category start_date end_date status',
+                    populate: [
+                        { path: 'leader', select: 'username' },
+                        { path: 'creator', select: 'username' }
+                    ]
                 })
                 .populate('user_id', 'username');
 
@@ -97,7 +139,7 @@ router.get('/get-resources', verifyToken, async (req, res) => {
     try {
 
         const auth = req.auth;
-        if(auth.role == ROLE.UNAUTHORIZED) {
+        if (auth.role == ROLE.UNAUTHORIZED) {
             return res.status(401).send({
                 message: 'Unauthorized!'
             });
@@ -128,10 +170,79 @@ router.get('/get-resources', verifyToken, async (req, res) => {
     }
 });
 
+//change resource
+router.post('/change-resource', verifyToken, async (req, res) => {
+    try {
+        const auth = req.auth;
+        if (auth.role === ROLE.UNAUTHORIZED) {
+            return res.status(401).send({
+                message: 'Unauthorized!'
+            });
+        }
+
+        let {
+            name,
+            version,
+            description,
+            component,
+            category,
+            module
+        } = req.body;
+
+        if (components.indexOf(component) === -1) {
+            return res.status(400).send({
+                message: 'Invalid component!'
+            });
+        }
+
+        if (categories.indexOf(category) === -1) {
+            return res.status(400).send({
+                message: 'Invalid category!'
+            });
+        }
+
+        if (modules.indexOf(module) === -1) {
+            return res.status(400).send({
+                message: 'Invalid module!'
+            });
+        }
+
+        const foundFile = await fileModel
+            .findOne({ file_id: newMongoId(foundFile._id)});
+        if (!foundFile) {
+            return res.status(404).send({
+                message: 'File not found!'
+            });
+        }
+
+        await fileModel.findByIdAndUpdate(
+            foundFile._id,
+            {
+                name,
+                version,
+                description,
+                component,
+                category,
+                module,
+            }
+        );
+
+        return res.status(200).send({
+            message: 'Change resource successful!'
+        });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({
+            message: 'Internal server error!'
+        });
+    }
+});
+
 router.get('/get-project-info', verifyToken, async (req, res) => {
     try {
         const auth = req.auth;
-        if(auth.role == ROLE.UNAUTHORIZED) {
+        if (auth.role == ROLE.UNAUTHORIZED) {
             return res.status(401).send({
                 message: 'Unauthorized!'
             });
@@ -148,12 +259,12 @@ router.get('/get-project-info', verifyToken, async (req, res) => {
                 message: 'Project not found!'
             });
         }
-        
+
         return res.status(200).send({
             message: 'Get project info successful!',
             project: foundProject
         })
-        
+
     } catch (error) {
         console.log(error);
         return res.status(500).send({
@@ -166,7 +277,7 @@ router.get('/get-project-info', verifyToken, async (req, res) => {
 router.post('/search-project', verifyToken, async (req, res) => {
     try {
         const auth = req.auth;
-        if(auth.role == ROLE.UNAUTHORIZED) {
+        if (auth.role == ROLE.UNAUTHORIZED) {
             return res.status(401).send({
                 message: 'Unauthorized!'
             });
@@ -177,11 +288,11 @@ router.post('/search-project', verifyToken, async (req, res) => {
         let result_by_code = [];
         let result_by_name = [];
 
-        if(auth.role == ROLE.ADMIN) {
+        if (auth.role == ROLE.ADMIN) {
             result_by_code = await projectModel
                 .find({ code: { $regex: project_keyword, $options: 'i' } })
                 .lean();
-            
+
             result_by_name = await projectModel
                 .find({ name: { $regex: project_keyword, $options: 'i' } })
                 .lean();
@@ -189,7 +300,7 @@ router.post('/search-project', verifyToken, async (req, res) => {
             result_by_code = await projectModel
                 .find({ code: { $regex: project_keyword, $options: 'i' }, leader: newMongoId(auth.id) })
                 .lean();
-            
+
             result_by_name = await projectModel
                 .find({ name: { $regex: project_keyword, $options: 'i' }, leader: newMongoId(auth.id) })
                 .lean();
@@ -209,12 +320,12 @@ router.post('/search-project', verifyToken, async (req, res) => {
             message: 'Internal server error!'
         });
     }
-}) 
+})
 
 router.post('/search-user', verifyToken, async (req, res) => {
     try {
         const auth = req.auth;
-        if(auth.role == ROLE.UNAUTHORIZED) {
+        if (auth.role == ROLE.UNAUTHORIZED) {
             return res.status(401).send({
                 message: 'Unauthorized!'
             });
@@ -225,11 +336,11 @@ router.post('/search-user', verifyToken, async (req, res) => {
         let result_by_code = [];
         let result_by_name = [];
 
-        if(auth.role == ROLE.ADMIN) {
+        if (auth.role == ROLE.ADMIN) {
             result_by_code = await userModel
                 .find({ username: { $regex: user_keyword, $options: 'i' } })
                 .lean();
-            
+
             result_by_name = await userModel
                 .find({ name: { $regex: user_keyword, $options: 'i' } })
                 .lean();
@@ -237,7 +348,7 @@ router.post('/search-user', verifyToken, async (req, res) => {
             result_by_code = await userModel
                 .find({ username: { $regex: user_keyword, $options: 'i' }, leader: newMongoId(auth.id) })
                 .lean();
-            
+
             result_by_name = await userModel
                 .find({ name: { $regex: user_keyword, $options: 'i' }, leader: newMongoId(auth.id) })
                 .lean();
@@ -259,7 +370,7 @@ router.post('/search-user', verifyToken, async (req, res) => {
 router.post('/change-info', verifyToken, async (req, res) => {
     try {
         const auth = req.auth;
-        if(auth.role == ROLE.UNAUTHORIZED) {
+        if (auth.role == ROLE.UNAUTHORIZED) {
             return res.status(401).send({
                 message: 'Unauthorized!'
             });
@@ -286,7 +397,7 @@ router.post('/change-info', verifyToken, async (req, res) => {
 router.get('/get-users-in-project', verifyToken, async (req, res) => {
     try {
         const auth = req.auth;
-        if(auth.role == ROLE.UNAUTHORIZED) {
+        if (auth.role == ROLE.UNAUTHORIZED) {
             return res.status(401).send({
                 message: 'Unauthorized!'
             });
@@ -310,7 +421,7 @@ router.get('/get-users-in-project', verifyToken, async (req, res) => {
                 message: 'Unauthorized!'
             });
         }
-        
+
         const users = await projectRoleModel
             .find({ project_id: foundProject._id })
             .populate('user_id', 'username full_name')
@@ -332,29 +443,45 @@ router.get('/get-users-in-project', verifyToken, async (req, res) => {
 router.get('/get-projects', verifyToken, async (req, res) => {
     try {
         const auth = req.auth;
-        if(auth.role == ROLE.UNAUTHORIZED) {
+        if (auth.role == ROLE.UNAUTHORIZED) {
             return res.status(401).send({
                 message: 'Unauthorized!'
             });
         }
 
         const projectsIsLeader = await projectModel
-            .find({ leader: newMongoId(auth.id)})
+            .find({ leader: newMongoId(auth.id) })
             .populate('creator', 'username')
-            .populate('leader', 'username');
-        
+            .populate('leader', 'username')
+            .lean();
+
         const projectIsMember = await projectRoleModel
             .find({ user_id: newMongoId(auth.id) })
             .populate({
-              path: 'project_id',
-              select: 'code name creator leader rank category start_date end_date status',
-              populate: [
-                { path: 'leader', select: 'username' },
-                { path: 'creator', select: 'username' }
-              ]
+                path: 'project_id',
+                select: 'code name creator leader rank category start_date end_date status',
+                populate: [
+                    { path: 'leader', select: 'username' },
+                    { path: 'creator', select: 'username' }
+                ]
             })
-            .populate('user_id', 'username');
-        const projects = [...projectsIsLeader, ...projectIsMember.map(project => project.project_id)];
+            .populate('user_id', 'username')
+            .lean();
+        const projects = [];
+        projectsIsLeader.forEach(project => {
+            projects.push({
+                ...project,
+                caller_role_in_project: 'pm'
+            });
+        });
+
+        projectIsMember.forEach(project => {
+            projects.push({
+                ...project.project_id,
+                caller_role_in_project: 'user'
+            });
+        });
+
         return res.status(200).send({
             projects
         });

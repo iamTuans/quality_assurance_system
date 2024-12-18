@@ -109,24 +109,7 @@ function ViewProject_InformationComponent() {
                 width={500}
                 title="Change Project Infomation"
                 open={isOpenModal}
-                onOk={async () => {
-                    setLoading(true);
-                    await axios
-                        .post(`${configs.API_URL}/pm/change-project-info`, form.getFieldsValue(), {
-                            headers: {
-                                Authorization: localStorage.getItem("token") || "token",
-                            },
-                        })
-                        .then((res) => {
-                            message.success(res.data.message);
-                            changeState();
-                        })
-                        .catch((err) => {
-                            message.error(err.response.data.message);
-                        });
-                    setOpenModal(false)
-                    setLoading(false);
-                }}
+                onOk={async () => setOpenModal(false)}
                 onCancel={() => setOpenModal(false)}
                 okButtonProps={{
                     size: "large",

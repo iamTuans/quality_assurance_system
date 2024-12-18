@@ -48,6 +48,19 @@ const fileSchema = new Schema({
     server_file_path: {
         type: String,
         required: true
+    },
+    reviewer: {
+        type: Schema.Types.ObjectId,
+        ref: 'users',
+        default: null
+    },
+    review_status: {
+        type: Boolean,
+        default: false
+    },
+    review_evidence: {
+        type: String,
+        default: null
     }
 }, {
     timestamps: true

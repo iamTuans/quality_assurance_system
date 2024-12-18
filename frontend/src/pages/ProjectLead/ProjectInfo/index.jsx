@@ -79,7 +79,8 @@ function ProjectInfo() {
                         start_date: project.start_date || "",
                         end_date: project.end_date || "",
                         customer: project.customer || "",
-                        status: project.status || "undefined"
+                        status: project.status || "undefined",
+                        caller_role_in_project: project.caller_role_in_project
                     }
                 });
                 setProjects(buildedProjects);
@@ -143,9 +144,9 @@ function ProjectInfo() {
         {
             title: "Action",
             key: "Action",
-            render: (_, { code }) => {
+            render: (_, { caller_role_in_project, code }) => {
                 return (
-                    <Button type="primary" onClick={() => navigate(`/${JSON.parse(localStorage.getItem('auth'))?.role}/project/view/${code}`)} size="large">View</Button>
+                    <Button type="primary" onClick={() => navigate(`/${caller_role_in_project}/project/view/${code}`)} size="large">View</Button>
                 )
             }
         }

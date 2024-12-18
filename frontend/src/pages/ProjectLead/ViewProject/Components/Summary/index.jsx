@@ -27,7 +27,6 @@ export default function ViewProject_SummaryComponent() {
                 });
                 buildedActions.reverse();
             }
-            console.log(buildedActions);
             setActions(buildedActions);
         })
         .catch(err => {
